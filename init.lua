@@ -225,42 +225,7 @@ require('lazy').setup({
       require('eyeliner').setup { highlight_on_key = true }
     end,
   },
-  {
-    'christoomey/vim-tmux-navigator',
-    cmd = {
-      'TmuxNavigateLeft',
-      'TmuxNavigateDown',
-      'TmuxNavigateUp',
-      'TmuxNavigateRight',
-      'TmuxNavigatePrevious',
-    },
-    keys = {
-      { '<c-h>', '<cmd><C-U>TmuxNavigateLeft<cr>' },
-      -- { '<c-j>', '<cmd><C-U>TmuxNavigateDown<cr>' },
-      -- { '<c-k>', '<cmd><C-U>TmuxNavigateUp<cr>' },
-      { '<c-l>', '<cmd><C-U>TmuxNavigateRight<cr>' },
-      { '<c-\\>', '<cmd><C-U>TmuxNavigatePrevious<cr>' },
-
-      -- Window management
-      { '<leader>th', '<cmd>silent !tmux split-window -h<cr>', desc = 'Tmux Split Horizontal' },
-      { '<leader>tv', '<cmd>silent !tmux split-window -v<cr>', desc = 'Tmux Split Vertical' },
-      { '<leader>tc', '<cmd>silent !tmux new-window<cr>', desc = 'Tmux New Window' },
-
-      -- Window navigation
-      { '<leader>tn', '<cmd>silent !tmux next-window<cr>', desc = 'Tmux Next Window' },
-      { '<leader>tp', '<cmd>silent !tmux previous-window<cr>', desc = 'Tmux Previous Window' },
-      { '<leader>tl', '<cmd>silent !tmux last-window<cr>', desc = 'Tmux Last Window' },
-
-      -- Window selection by number
-      { '<leader>t1', '<cmd>silent !tmux select-window -t 1<cr>', desc = 'Tmux Window 1' },
-      { '<leader>t2', '<cmd>silent !tmux select-window -t 2<cr>', desc = 'Tmux Window 2' },
-      { '<leader>t3', '<cmd>silent !tmux select-window -t 3<cr>', desc = 'Tmux Window 3' },
-      -- Add more as needed
-
-      -- Session management
-      { '<leader>ts', '<cmd>silent !tmux switch-client -l<cr>', desc = 'Tmux Last Session' },
-    },
-  },
+  -- 'christoomey/vim-tmux-navigator', -- tmux navigator I was using before
   {
     'cbochs/grapple.nvim', -- For quick file navigation
     dependencies = {
@@ -361,7 +326,7 @@ require('lazy').setup({
       end)
 
       -- bring back cursors if you accidentally clear them
-      set('n', '<leader>gv', mc.restoreCursors)
+      -- set('n', '<leader>gv', mc.restoreCursors)
 
       -- Align cursor columns.
       -- set('v', '<leader>a', mc.alignCursors)
@@ -399,20 +364,10 @@ require('lazy').setup({
     end,
   },
 
-  -- NOTE: Plugins can also be added by using a table,
-  -- with the first argument being the link and the following
-  -- keys can be used to configure plugin behavior/loading/etc.
-  --
-  -- Use `opts = {}` to force a plugin to be loaded.
-  --
+  { -- Adds git signs to gutter, staging stuff with <leader>h, [c and ]c  to navigate "hunks" (change blocks)
 
-  -- Here is a more advanced example where we pass configuration
-  -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
-  --    require('gitsigns').setup({ ... })
-  --
-  -- See `:help gitsigns` to understand what the configuration keys do
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
+    event = { 'BufReadPre', 'BufNewFile' },
     opts = {
       signs = {
         add = { text = '+' },
@@ -421,33 +376,71 @@ require('lazy').setup({
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
       },
+      on_attach = function(bufnr)
+        local gs = require 'gitsigns'
+
+        local function map(mode, l, r, opts)
+          opts = opts or {}
+          opts.buffer = bufnr
+          vim.keymap.set(mode, l, r, opts)
+        end
+
+        -- Navigation
+        map('n', ']c', function()
+          if vim.wo.diff then
+            vim.cmd.normal { ']c', bang = true }
+          else
+            gs.next_hunk()
+          end
+        end)
+
+        map('n', '[c', function()
+          if vim.wo.diff then
+            vim.cmd.normal { '[c', bang = true }
+          else
+            gs.prev_hunk()
+          end
+        end)
+
+        map('n', '<leader>gs', gs.stage_hunk, { desc = 'Stage current hunk' })
+        map('n', '<leader>gr', gs.reset_hunk, { desc = 'Reset current hunk' })
+        map('v', '<leader>gs', function()
+          gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
+        end, { desc = 'Stage selected lines' })
+        map('v', '<leader>gr', function()
+          gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
+        end, { desc = 'Reset selected lines' })
+        map('n', '<leader>gS', gs.stage_buffer, { desc = 'Stage entire buffer' })
+        map('n', '<leader>gu', gs.undo_stage_hunk, { desc = 'Undo last stage' })
+        map('n', '<leader>gR', gs.reset_buffer, { desc = 'Reset entire buffer' })
+        map('n', '<leader>gp', gs.preview_hunk, { desc = 'Preview current hunk' })
+        map('n', '<leader>gb', function()
+          gs.blame_line { full = true }
+        end, { desc = 'Show full blame for line' })
+        map('n', '<leader>gb', gs.toggle_current_line_blame, { desc = 'Toggle line blame' })
+        map('n', '<leader>gd', gs.diffthis, { desc = 'Diff this file' })
+        map('n', '<leader>gD', function()
+          gs.diffthis '~'
+        end, { desc = 'Diff against parent' })
+        map('n', '<leader>gl', gs.toggle_deleted, { desc = 'Toggle deleted lines' })
+
+        -- Text object
+        map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>') -- Allows selection of hunk like vih, dih, yih
+      end,
     },
   },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
-  --
-  -- This is often very useful to both group configuration, as well as handle
-  -- lazy loading plugins that don't need to be loaded immediately at startup.
-  --
-  -- For example, in the following configuration, we use:
-  --  event = 'VimEnter'
-  --
+  -- Like: event = 'VimEnter'
   -- which loads which-key before all the UI elements are loaded. Events can be
   -- normal autocommands events (`:help autocmd-events`).
-  --
-  -- Then, because we use the `config` key, the configuration only runs
-  -- after the plugin has been loaded:
-  --  config = function() ... end
 
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
       icons = {
-        -- set icon mappings to true if you have a Nerd Font
         mappings = vim.g.have_nerd_font,
-        -- If you are using a Nerd Font: set icons.keys to an empty table which will use the
-        -- default whick-key.nvim defined Nerd Font icons, otherwise define a string table
         keys = vim.g.have_nerd_font and {} or {
           Up = '<Up> ',
           Down = '<Down> ',
@@ -482,13 +475,15 @@ require('lazy').setup({
 
       -- Document existing key chains
       spec = {
-        { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
+        { '<leader>c', group = 'Code', mode = { 'n', 'x' } },
         { '<leader>d', group = '[D]ocument' },
         { '<leader>r', group = '[R]ename' },
-        { '<leader>s', group = '[S]earch' },
+        { '<leader>s', group = 'Telescope search' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>g', group = 'Git Hunk', mode = { 'n', 'v' } },
+        { '<leader>e', group = 'Yazi file manager' },
+        { '<leader>/', group = 'Telescope fuzzy search buffer' },
       },
     },
   },
@@ -500,25 +495,69 @@ require('lazy').setup({
   --
   -- Use the `dependencies` key to specify the dependencies of a particular plugin
 
-  {
-    'stevearc/oil.nvim',
-    ---@module 'oil'
-    ---@type oil.SetupOpts
-    opts = {},
-    -- Optional dependencies
-    -- dependencies = { { 'echasnovski/mini.icons', opts = {} } },
-    dependencies = { 'nvim-tree/nvim-web-devicons' }, -- use if prefer nvim-web-devicons
-    keys = {
-      { '<leader>e', '<CMD>Oil<CR>', desc = 'Open Oil file explorer' },
-    },
-  },
+  -- NOTE: Trying out Yazi instead
+  -- {
+  --   'stevearc/oil.nvim',
+  --   ---@module 'oil'
+  --   ---@type oil.SetupOpts
+  --   opts = {},
+  --   -- Optional dependencies
+  --   -- dependencies = { { 'echasnovski/mini.icons', opts = {} } },
+  --   dependencies = { 'nvim-tree/nvim-web-devicons' }, -- use if prefer nvim-web-devicons
+  --   keys = {
+  --     { '<leader>e', '<CMD>Oil<CR>', desc = 'Open Oil file explorer' },
+  --   },
+  -- },
+
   {
     'nvim-tree/nvim-web-devicons',
     opts = { color_icons = true, default = true },
     lazy = false,
     enabled = true,
   },
-  { -- Fuzzy Finder (files, lsp, etc)
+
+  --@type LazySpec
+  {
+    'mikavilpas/yazi.nvim',
+    event = 'VeryLazy',
+    keys = {
+      -- 👇 in this section, choose your own keymappings!
+      {
+        '<leader>e',
+        '<cmd>Yazi<cr>',
+        desc = 'Open yazi at the current file',
+      },
+      {
+        -- Open in the current working directory
+        '<leader>cw',
+        '<cmd>Yazi cwd<cr>',
+        desc = "Open the file manager in nvim's working directory",
+      },
+
+      {
+        -- NOTE: this requires a version of yazi that includes
+        -- https://github.com/sxyazi/yazi/pull/1305 from 2024-07-18
+        '<c-up>',
+        '<cmd>Yazi toggle<cr>',
+        desc = 'Resume the last yazi session',
+      },
+    },
+    ---@type YaziConfig
+    opts = {
+      -- if you want to open yazi instead of netrw, see below for more info
+      open_for_directories = true,
+      keymaps = {
+        show_help = '<f1>',
+        copy_relative_path_to_selected_files = '<c-y>',
+      },
+      integrations = {
+        resolve_relative_path_application = 'realpath', -- use "grealpath" if you're on macOS
+      },
+    },
+  },
+
+  -- NOTE: Telescope
+  {
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
     branch = '0.1.x',
@@ -543,37 +582,34 @@ require('lazy').setup({
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
-    config = function()
-      -- Telescope is a fuzzy finder that comes with a lot of different things that
-      -- it can fuzzy find! It's more than just a "file finder", it can search
-      -- many different aspects of Neovim, your workspace, LSP, and more!
-      --
-      -- The easiest way to use Telescope, is to start by doing something like:
-      --  :Telescope help_tags
-      --
-      -- After running this command, a window will open up and you're able to
-      -- type in the prompt window. You'll see a list of `help_tags` options and
-      -- a corresponding preview of the help.
-      --
-      -- Two important keymaps to use while in Telescope are:
-      --  - Insert mode: <c-/>
-      --  - Normal mode: ?
-      --
-      -- This opens a window that shows you all of the keymaps for the current
-      -- Telescope picker. This is really useful to discover what Telescope can
-      -- do as well as how to actually do it!
+    -- The easiest way to use Telescope, is to start by doing something like:
+    --  :Telescope help_tags
+    --
+    -- Two important keymaps to use while in Telescope are:
+    --  - Insert mode: <c-/> -- cycle through in insert mode
+    --  - Normal mode: ?
 
-      -- [[ Configure Telescope ]]
-      -- See `:help telescope` and `:help telescope.setup()`
+    -- [[ Configure Telescope ]]
+    -- See `:help telescope` and `:help telescope.setup()`
+    config = function()
       require('telescope').setup {
-        -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          mappings = {
+            i = {
+              -- In insert mode, press ctrl-t to tag current selection
+              ['<C-#>'] = function(prompt_bufnr)
+                -- Get the selected entry
+                local selection = require('telescope.actions.state').get_selected_entry()
+                -- Print both the buffer number and the current selection
+                local selection = require('telescope.actions.state').get_selected_entry()
+                print('Buffer:', prompt_bufnr)
+                print('Selection:', vim.inspect(selection))
+              end,
+            },
+          },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
@@ -598,7 +634,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
-      vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>s<leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
       vim.keymap.set('n', '<leader>u', '<cmd>Telescope undo<cr>', { desc = 'Telescope Undo' })
 
       -- Slightly advanced example of overriding default behavior and theme
@@ -657,30 +693,11 @@ require('lazy').setup({
       'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
-      -- Brief aside: **What is LSP?**
-      --
-      -- LSP is an initialism you've probably heard, but might not understand what it is.
-      --
-      -- LSP stands for Language Server Protocol. It's a protocol that helps editors
-      -- and language tooling communicate in a standardized fashion.
-      --
-      -- In general, you have a "server" which is some tool built to understand a particular
-      -- language (such as `gopls`, `lua_ls`, `rust_analyzer`, etc.). These Language Servers
-      -- (sometimes called LSP servers, but that's kind of like ATM Machine) are standalone
-      -- processes that communicate with some "client" - in this case, Neovim!
-      --
       -- LSP provides Neovim with features like:
       --  - Go to definition
       --  - Find references
       --  - Autocompletion
       --  - Symbol Search
-      --  - and more!
-      --
-      -- Thus, Language Servers are external tools that must be installed separately from
-      -- Neovim. This is where `mason` and related plugins come into play.
-      --
-      -- If you're wondering about lsp vs treesitter, you can check out the wonderfully
-      -- and elegantly composed help section, `:help lsp-vs-treesitter`
 
       --  This function gets run when an LSP attaches to a particular buffer.
       --    That is to say, every time a new file is opened that is associated with
@@ -689,10 +706,7 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
-          -- NOTE: Remember that Lua is a real programming language, and as such it is possible
-          -- to define small helper and utility functions so you don't have to repeat yourself.
-          --
-          -- In this case, we create a function that lets us more easily define mappings specific
+          -- We create a function that lets us more easily define mappings specific
           -- for LSP related items. It sets the mode, buffer and description for us each time.
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
@@ -1037,9 +1051,6 @@ require('lazy').setup({
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
     config = function()
-      -- Better Around/Inside textobjects
-      --
-      -- Examples:
       --  - va)  - [V]isually select [A]round [)]paren
       --  - yinq - [Y]ank [I]nside [N]ext [Q]uote
       --  - ci'  - [C]hange [I]nside [']quote
@@ -1071,13 +1082,30 @@ require('lazy').setup({
       --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
+
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        'python',
+        'zig',
+        'mojo',
+        'rust',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1089,12 +1117,110 @@ require('lazy').setup({
       },
       indent = { enable = true, disable = { 'ruby' } },
     },
-    -- There are additional nvim-treesitter modules that you can use to interact
-    -- with nvim-treesitter. You should go explore a few and see what interests you:
-    --
-    --    - Incremental selection: Included, see `:help nvim-treesitter-incremental-selection-mod`
-    --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
-    --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
+
+    {
+      'nvim-treesitter/nvim-treesitter-context',
+      dependencies = { 'nvim-treesitter/nvim-treesitter' },
+      config = function()
+        require('treesitter-context').setup {
+          enable = true, -- Can also be toggled with :TSContextEnable, :TSContextDisable, :TSContextToggle commands
+          multiwindow = false, -- If true, shows context in all Neovim windows
+          max_lines = 5,
+          multiline_threshold = 1,
+          trim_scope = 'inner',
+          mode = 'cursor',
+          line_numbers = true,
+        }
+      end,
+    },
+
+    {
+      'nvim-treesitter/nvim-treesitter-textobjects',
+      dependencies = { 'nvim-treesitter/nvim-treesitter' },
+      config = function()
+        require('nvim-treesitter.configs').setup {
+          textobjects = {
+            select = {
+              enable = true,
+              lookahead = true, -- Automatically jump forward to matching textobj
+              keymaps = {
+                -- You use: va to select outer, vi to select inner
+                ['af'] = '@function.outer', -- Select outer part of a function
+                ['if'] = '@function.inner', -- Select inner part of a function
+                ['ac'] = '@class.outer', -- Select outer part of a class
+                ['ic'] = '@class.inner', -- Select inner part of a class
+              },
+            },
+            move = {
+              enable = true,
+              set_jumps = true,
+              goto_next_start = {
+                ['[f'] = '@function.outer', -- Function start
+                ['[c'] = '@class.outer', -- Class start
+                ['[l'] = '@loop.outer', -- Loop start
+                ['[i'] = '@conditional.outer', -- If start
+              },
+              goto_next_end = {
+                [']f'] = '@function.outer', -- Function end
+                [']c'] = '@class.outer', -- Class end
+                [']l'] = '@loop.outer', -- Loop end
+                [']i'] = '@conditional.outer', -- If end
+              },
+              goto_previous_start = {
+                ['[F'] = '@function.outer', -- Previous function start
+                ['[C'] = '@class.outer', -- Previous class start
+                ['[L'] = '@loop.outer', -- Previous loop start
+                ['[I'] = '@conditional.outer', -- Previous if start
+              },
+              goto_previous_end = {
+                [']F'] = '@function.outer', -- Previous function end
+                [']C'] = '@class.outer', -- Previous class end
+                [']L'] = '@loop.outer', -- Previous loop end
+                [']I'] = '@conditional.outer', -- Previous if end
+              },
+            },
+          },
+        }
+      end,
+    },
+
+    { -- NOTE: Tresitter Refactor
+      'nvim-treesitter/nvim-treesitter-refactor',
+      dependencies = { 'nvim-treesitter/nvim-treesitter' },
+      config = function()
+        require('nvim-treesitter.configs').setup {
+          refactor = {
+            -- Highlight definitions
+            highlight_definitions = {
+              enable = true,
+              clear_on_cursor_move = true,
+            },
+            -- Highlight current scope
+            highlight_current_scope = {
+              enable = false,
+            },
+            -- Smart rename
+            -- smart_rename = {
+            --   enable = true,
+            --   keymaps = {
+            --     smart_rename = 'grr',
+            --   },
+            -- },
+            -- Navigation
+            navigation = {
+              enable = true,
+              keymaps = {
+                goto_definition = 'gnd',
+                list_definitions = 'gnD',
+                list_definitions_toc = 'gO',
+                goto_next_usage = '<a-d>',
+                goto_previous_usage = '<a-D>',
+              },
+            },
+          },
+        }
+      end,
+    },
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
@@ -1142,4 +1268,4 @@ require('lazy').setup({
 })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 etfalse
+-- vim: ts=2 sts=2 sw=2 et
