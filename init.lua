@@ -219,7 +219,6 @@ require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
 
   -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-
   'norcalli/nvim-colorizer.lua',
   {
     'jinh0/eyeliner.nvim', -- Adds highlighting for f/F jumps
@@ -228,6 +227,44 @@ require('lazy').setup({
     end,
   },
   -- 'christoomey/vim-tmux-navigator', -- tmux navigator I was using before
+  {
+    'folke/trouble.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    opts = {},
+    cmd = 'Trouble',
+    keys = {
+      {
+        '<leader>xx',
+        '<cmd>Trouble diagnostics toggle<cr>',
+        desc = 'Diagnostics (Trouble)',
+      },
+      {
+        '<leader>xX',
+        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
+        desc = 'Buffer Diagnostics (Trouble)',
+      },
+      {
+        '<leader>cs',
+        '<cmd>Trouble symbols toggle focus=false<cr>',
+        desc = 'Symbols (Trouble)',
+      },
+      {
+        '<leader>cl',
+        '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
+        desc = 'LSP Definitions / references / ... (Trouble)',
+      },
+      {
+        '<leader>xL',
+        '<cmd>Trouble loclist toggle<cr>',
+        desc = 'Location List (Trouble)',
+      },
+      {
+        '<leader>xQ',
+        '<cmd>Trouble qflist toggle<cr>',
+        desc = 'Quickfix List (Trouble)',
+      },
+    },
+  },
   {
     'cbochs/grapple.nvim', -- For quick file navigation
     dependencies = {
@@ -263,60 +300,49 @@ require('lazy').setup({
       local set = vim.keymap.set
 
       -- Add or skip cursor above/below the main cursor.
-      set({ 'n', 'v' }, '<up>', function()
+      set({ 'n', 'v' }, '<leader>mk', function()
         mc.lineAddCursor(-1)
-      end)
-      set({ 'n', 'v' }, '<down>', function()
+      end, { desc = 'Add cursor one line above' })
+      set({ 'n', 'v' }, '<leader>mj', function()
         mc.lineAddCursor(1)
-      end)
-      set({ 'n', 'v' }, '<leader><up>', function()
+      end, { desc = 'Add cursor one line below' })
+      set({ 'n', 'v' }, '<leader>mK', function()
         mc.lineSkipCursor(-1)
-      end)
-      set({ 'n', 'v' }, '<leader><down>', function()
+      end, { desc = 'Skip adding cursor one line above' })
+      set({ 'n', 'v' }, '<leader>mJ', function()
         mc.lineSkipCursor(1)
-      end)
+      end, { desc = 'Skip adding cursor one line below' })
+
+      -- Rotate between cursors
+      set({ 'n', 'v' }, '<leader>mh', mc.nextCursor, { desc = 'Move to next cursor' })
+      set({ 'n', 'v' }, '<leader>ml', mc.prevCursor, { desc = 'Move to previous cursor' })
+      -- Mouse control
+      set('n', '<c-leftmouse>', mc.handleMouse, { desc = 'Add/remove cursor at mouse click' })
+      -- Toggle cursor at current position
+      set({ 'n', 'v' }, '<c-q>', mc.toggleCursor, { desc = 'Toggle cursor at current position' })
 
       -- Add or skip adding a new cursor by matching word/selection
-      set({ 'n', 'v' }, '<leader>n', function()
+      set({ 'n', 'v' }, '<leader>mn', function()
         mc.matchAddCursor(1)
-      end)
-      set({ 'n', 'v' }, '<leader>s', function()
-        mc.matchSkipCursor(1)
-      end)
-      set({ 'n', 'v' }, '<leader>N', function()
+      end, { desc = 'MCursor: Add at next match' })
+      set({ 'n', 'v' }, '<leader>mN', function()
         mc.matchAddCursor(-1)
-      end)
-      set({ 'n', 'v' }, '<leader>S', function()
+      end, { desc = 'MCursor: Add at previous match' })
+      set({ 'n', 'v' }, '<leader>ms', function()
+        mc.matchSkipCursor(1)
+      end, { desc = 'MCursor: Skip next match' })
+      set({ 'n', 'v' }, '<leader>mS', function()
         mc.matchSkipCursor(-1)
-      end)
+      end, { desc = 'MCursor: Skip previous match' })
+      set({ 'n', 'v' }, '<leader>ma', mc.matchAllAddCursors, { desc = 'MCursor: Add all matches' })
+      -- Delete current cursor
+      set({ 'n', 'v' }, '<leader>md', mc.deleteCursor, { desc = 'Delete current cursor' })
+      -- bring back cursors if you accidentally clear them
+      set('n', '<leader>mu', mc.restoreCursors, { desc = 'Undo cursor deletion' })
+      -- Align cursor columns.
+      set('v', '<leader>ma', mc.alignCursors, { desc = 'Align cursor columns' })
 
-      -- Add all matches in the document
-      -- set({ 'n', 'v' }, '<leader>A', mc.matchAllAddCursors)
-
-      -- You can also add cursors with any motion you prefer:
-      -- set("n", "<right>", function()
-      --     mc.addCursor("w")
-      -- end)
-      -- set("n", "<leader><right>", function()
-      --     mc.skipCursor("w")
-      -- end)
-
-      -- Rotate the main cursor.
-      set({ 'n', 'v' }, '<left>', mc.nextCursor)
-      set({ 'n', 'v' }, '<right>', mc.prevCursor)
-
-      -- Delete the main cursor.
-      set({ 'n', 'v' }, '<leader>x', mc.deleteCursor)
-
-      -- Add and remove cursors with control + left click.
-      set('n', '<c-leftmouse>', mc.handleMouse)
-
-      -- Easy way to add and remove cursors using the main cursor.
-      set({ 'n', 'v' }, '<c-q>', mc.toggleCursor)
-
-      -- Clone every cursor and disable the originals.
-      set({ 'n', 'v' }, '<leader><c-q>', mc.duplicateCursors)
-
+      -- ESC handling for cursors
       set('n', '<esc>', function()
         if not mc.cursorsEnabled() then
           mc.enableCursors()
@@ -325,35 +351,22 @@ require('lazy').setup({
         else
           -- Default <esc> handler.
         end
-      end)
+      end, { desc = 'Enable cursors, clear if active, or normal ESC' })
 
-      -- bring back cursors if you accidentally clear them
-      -- set('n', '<leader>gv', mc.restoreCursors)
+      -- Visual mode operations
+      set('v', 'S', mc.splitCursors, { desc = 'Split selection into cursors at regex matches' })
+      set('v', 'I', mc.insertVisual, { desc = 'Insert at start of each selected line' })
+      set('v', 'A', mc.appendVisual, { desc = 'Append at end of each selected line' })
+      set('v', 'M', mc.matchCursors, { desc = 'Add cursors at regex matches in selection' })
 
-      -- Align cursor columns.
-      -- set('v', '<leader>a', mc.alignCursors)
-
-      -- Split visual selections by regex.
-      set('v', 'S', mc.splitCursors)
-
-      -- Append/insert for each line of visual selections.
-      set('v', 'I', mc.insertVisual)
-      set('v', 'A', mc.appendVisual)
-
-      -- match new cursors within visual selections by regex.
-      set('v', 'M', mc.matchCursors)
-
-      -- Rotate visual selection contents.
-      set('v', '<leader>t', function()
+      -- Rotate/transpose operations
+      set('v', '<leader>mt', function()
         mc.transposeCursors(1)
-      end)
-      set('v', '<leader>T', function()
-        mc.transposeCursors(-1)
-      end)
+      end, { desc = 'Rotate selected texts forward' })
 
-      -- Jumplist support
-      set({ 'v', 'n' }, '<c-i>', mc.jumpForward)
-      set({ 'v', 'n' }, '<c-o>', mc.jumpBackward)
+      set('v', '<leader>mT', function()
+        mc.transposeCursors(-1)
+      end, { desc = 'Rotate selected texts backward' })
 
       -- Customize how cursors look.
       local hl = vim.api.nvim_set_hl
@@ -477,13 +490,15 @@ require('lazy').setup({
       -- Document existing key chains
       spec = {
         { '<leader>c', group = 'Code', mode = { 'n', 'x' } },
-        { '<leader>d', group = '[D]ocument' },
+        { '<leader>d', group = 'Debug' },
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = 'Telescope search' },
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>g', group = 'Git Hunk', mode = { 'n', 'v' } },
         { '<leader>e', group = 'Yazi file manager' },
+        { '<leader>m', group = '󰆿 MultiCursor' },
+        { '<leader>x', group = 'Trouble' },
         { '<leader>/', group = 'Telescope fuzzy search buffer' },
       },
     },
@@ -990,7 +1005,7 @@ require('lazy').setup({
       },
     },
     opts = {
-      notify_on_error = false,
+      notify_on_error = true,
       format_on_save = function(bufnr)
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
@@ -1007,13 +1022,30 @@ require('lazy').setup({
           lsp_format = lsp_format_opt,
         }
       end,
+      formatters = {
+        prettierd = {
+          env = {
+            PRETTIERD_LOCAL_PRETTIER_ONLY = 'true',
+          },
+        },
+        -- xmlformatter = {
+        --   command = 'xmlformat',
+        --   args = { '-' },
+        -- },
+      },
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        python = { 'ruff' },
+        html = { 'prettierd' },
+        css = { 'prettierd' },
+        javascript = { 'prettierd' },
+        javascriptreact = { 'prettierd' },
+        typescript = { 'prettierd' },
+        typescriptreact = { 'prettierd' },
+        json = { 'prettierd' },
+        yaml = { 'prettierd' },
+        -- xml = { 'xmlformatter' },
+        xml = { 'xmllint' },
       },
     },
   },
@@ -1121,6 +1153,7 @@ require('lazy').setup({
           --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
         },
         sources = {
+          -- { name = 'codeium' },
           {
             name = 'lazydev',
             -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
@@ -1133,6 +1166,29 @@ require('lazy').setup({
       }
     end,
   },
+
+  -- {
+  --   'Exafunction/codeium.nvim',
+  --   dependencies = {
+  --     'nvim-lua/plenary.nvim',
+  --     'hrsh7th/nvim-cmp',
+  --   },
+  --   config = function()
+  --     require('codeium').setup {
+  --       autocompletion = true,
+  --       virtual_text = {
+  --         enabled = true,
+  --         filetypes = {
+  --           python = true,
+  --           html = true,
+  --           javascript = true,
+  --           typescript = true,
+  --         },
+  --         default_filetype_enabled = true,
+  --       },
+  --     }
+  --   end,
+  -- },
 
   { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
