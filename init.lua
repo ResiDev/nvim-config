@@ -1,30 +1,3 @@
---[[
-
-    If you don't know anything about Lua, I recommend taking some time to read through
-    a guide. One possible example which will only take 10-15 minutes:
-      - https://learnxinyminutes.com/docs/lua/
-
-    After understanding a bit more about Lua, you can use `:help lua-guide` as a
-    reference for how Neovim integrates Lua.
-    - :help lua-guide
-    - (or HTML version): https://neovim.io/doc/user/lua-guide.html
-
-  Next, run AND READ `:help`.
-    This will open up a help window with some basic information
-    about reading, navigating and searching the builtin help documentation.
-
-    This should be the first place you go to look when you're stuck or confused
-    with something. It's one of my favorite Neovim features.
-
-    MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
-    which is very useful when you're not exactly sure of what you're looking for.
-
-  I have left several `:help X` comments throughout the init.lua
-    These are hints about where to find more information about the relevant settings,
-    plugins or Neovim features used in Kickstart.
---]]
-
--- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
@@ -221,12 +194,60 @@ require('lazy').setup({
   -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   'norcalli/nvim-colorizer.lua',
   {
+    'gbprod/substitute.nvim',
+    config = function()
+      require('substitute').setup {} -- Setup with default settings
+
+      -- Basic substitution
+      vim.keymap.set('n', '<leader>p', require('substitute').operator, { noremap = true })
+      vim.keymap.set('n', '<leader>ps', require('substitute').line, { noremap = true })
+      vim.keymap.set('n', '<leader>pS', require('substitute').eol, { noremap = true })
+      vim.keymap.set('x', '<leader>p', require('substitute').visual, { noremap = true })
+    end,
+  },
+
+  {
     'jinh0/eyeliner.nvim', -- Adds highlighting for f/F jumps
     config = function()
       require('eyeliner').setup { highlight_on_key = true }
     end,
   },
   -- 'christoomey/vim-tmux-navigator', -- tmux navigator I was using before
+  -- lazy.nvim
+  {
+    'folke/snacks.nvim',
+    opts = {
+      lazygit = {
+        -- your lazygit configuration comes here
+        -- or leave it empty to use the default settings
+        -- refer to the configuration section below
+      },
+    },
+    keys = {
+      vim.keymap.set('n', '<leader>gg', function()
+        require('snacks').lazygit()
+      end, { desc = 'Open LazyGit' }),
+      vim.keymap.set('n', '<leader>gl', function()
+        require('snacks').lazygit.log()
+      end, { desc = 'Open LazyGit Log' }),
+      vim.keymap.set('n', '<leader>gf', function()
+        require('snacks').lazygit.log_file()
+      end, { desc = 'Open LazyGit File Log' }),
+    },
+  },
+  {
+    'folke/flash.nvim',
+    event = 'VeryLazy',
+    ---@type Flash.Config
+    opts = {},
+  -- stylua: ignore
+  keys = {
+    { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
+    { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+    { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
+  }
+,
+  },
   {
     'folke/trouble.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
@@ -770,8 +791,8 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>dC', require('dap').clear_breakpoints, { desc = 'Debug: Clear all breakpoints' })
 
       -- Stepping
-      vim.keymap.set('n', '<leader>dj', require('dap').step_over, { desc = 'Debug: Step Over' })
-      vim.keymap.set('n', '<leader>di', require('dap').step_into, { desc = 'Debug: Step Into' })
+      vim.keymap.set('n', '<leader>j', require('dap').step_over, { desc = 'Debug: Step Over' })
+      vim.keymap.set('n', '<leader>i', require('dap').step_into, { desc = 'Debug: Step Into' })
       vim.keymap.set('n', '<leader>do', require('dap').step_out, { desc = 'Debug: Step Out' })
 
       -- UI Controls
