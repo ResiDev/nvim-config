@@ -110,6 +110,11 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+-- Disabling diagnostic for plugin instead
+vim.diagnostic.config {
+  virtual_text = false, -- This controls the right-side diagnostics
+}
+
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
@@ -144,8 +149,8 @@ vim.api.nvim_create_autocmd('FileType', {
 --  Use CTRL+<hjkl> to switch between windows
 --
 --  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', 'gh', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', 'gl', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+-- vim.keymap.set('n', 'gh', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+-- vim.keymap.set('n', 'gl', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', 'gk', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 vim.keymap.set('n', 'gj', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 -- vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
@@ -187,12 +192,48 @@ vim.opt.rtp:prepend(lazypath)
 --  To update plugins you can run
 --    :Lazy update
 
+-- NOTE: PLUGINS
 require('lazy').setup({
-
-  -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-
   -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   'norcalli/nvim-colorizer.lua',
+  {
+    'rachartier/tiny-inline-diagnostic.nvim',
+    event = 'VeryLazy', -- Or `LspAttach`
+    priority = 1000, -- needs to be loaded in first
+    config = function()
+      require('tiny-inline-diagnostic').setup {
+        preset = 'modern',
+        options = {
+          severity = {
+            vim.diagnostic.severity.ERROR,
+            vim.diagnostic.severity.WARN,
+          },
+          multiple_diag_under_cursor = true,
+          multilines = true,
+          show_all_diags_on_cursorline = true,
+          overflow = { mode = 'wrap' },
+
+          format = function(diagnostic)
+            local bufnr = vim.api.nvim_get_current_buf()
+            local line = diagnostic.lnum
+            local all_diags = vim.diagnostic.get(bufnr, {
+              lnum = line,
+            })
+
+            local highest_severity = diagnostic.severity
+            for _, d in ipairs(all_diags) do
+              if d.severity < highest_severity then -- Lower number means higher severity
+                highest_severity = d.severity
+              end
+            end
+
+            diagnostic.severity = highest_severity
+            return diagnostic.message
+          end,
+        },
+      }
+    end,
+  },
   {
     'gbprod/substitute.nvim',
     config = function()
@@ -241,36 +282,73 @@ require('lazy').setup({
     ---@type Flash.Config
     opts = {},
   -- stylua: ignore
-  keys = {
-    { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
-    { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
-    { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
-  }
-,
+  
+  -- Changing highlight colour
+  config = function()
+    vim.api.nvim_set_hl(0, 'FlashLabel', { bg = '#FF0000', fg = '#000000', bold = true })  -- Bright red background with black text
+  end,
+    keys = {
+      {
+        's',
+        mode = { 'n', 'x', 'o' },
+        function()
+          require('flash').jump()
+        end,
+        desc = 'Flash',
+      },
+      {
+        'S',
+        mode = { 'n', 'x', 'o' },
+        function()
+          require('flash').treesitter()
+        end,
+        desc = 'Flash Treesitter',
+      },
+      {
+        '<c-s>',
+        mode = { 'c' },
+        function()
+          require('flash').toggle()
+        end,
+        desc = 'Toggle Flash Search',
+      },
+    },
   },
   {
     'folke/trouble.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
-    opts = {},
+    opts = {
+      focus = true,
+    },
     cmd = 'Trouble',
     keys = {
       {
         '<leader>xx',
-        '<cmd>Trouble diagnostics toggle<cr>',
+        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
         desc = 'Diagnostics (Trouble)',
       },
       {
-        '<leader>xX',
-        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
-        desc = 'Buffer Diagnostics (Trouble)',
+        '<leader>xe',
+        '<cmd>Trouble diagnostics toggle filter.severity=vim.diagnostic.severity.ERROR<cr>',
+        desc = 'Diagnostics Error (Trouble)',
       },
       {
-        '<leader>cs',
+        '<leader>xw',
+        '<cmd>Trouble diagnostics toggle filter={"not"={severity=vim.diagnostic.severity.INFO}}<cr>',
+        desc = 'Show Warnings & Errors (Trouble)',
+      },
+      {
+        '<leader>xX',
+        '<cmd>Trouble diagnostics toggle<cr>',
+        desc = 'All Buffer Diagnostics (Trouble)',
+      },
+      {
+        '<leader>xs',
         '<cmd>Trouble symbols toggle focus=false<cr>',
         desc = 'Symbols (Trouble)',
       },
       {
-        '<leader>cl',
+        '<leader>xl',
         '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
         desc = 'LSP Definitions / references / ... (Trouble)',
       },
@@ -532,20 +610,6 @@ require('lazy').setup({
   --
   -- Use the `dependencies` key to specify the dependencies of a particular plugin
 
-  -- NOTE: Trying out Yazi instead
-  -- {
-  --   'stevearc/oil.nvim',
-  --   ---@module 'oil'
-  --   ---@type oil.SetupOpts
-  --   opts = {},
-  --   -- Optional dependencies
-  --   -- dependencies = { { 'echasnovski/mini.icons', opts = {} } },
-  --   dependencies = { 'nvim-tree/nvim-web-devicons' }, -- use if prefer nvim-web-devicons
-  --   keys = {
-  --     { '<leader>e', '<CMD>Oil<CR>', desc = 'Open Oil file explorer' },
-  --   },
-  -- },
-
   {
     'nvim-tree/nvim-web-devicons',
     opts = { color_icons = true, default = true },
@@ -793,6 +857,8 @@ require('lazy').setup({
       -- Stepping
       vim.keymap.set('n', '<leader>j', require('dap').step_over, { desc = 'Debug: Step Over' })
       vim.keymap.set('n', '<leader>i', require('dap').step_into, { desc = 'Debug: Step Into' })
+      vim.keymap.set('n', '<C-l>', require('dap').step_over, { desc = 'Debug: Step Over' })
+      vim.keymap.set('n', '<C-i>', require('dap').step_into, { desc = 'Debug: Step Into' })
       vim.keymap.set('n', '<leader>do', require('dap').step_out, { desc = 'Debug: Step Out' })
 
       -- UI Controls
@@ -962,8 +1028,82 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
-        --
 
+        basedpyright = {
+          settings = {
+            basedpyright = {
+              analysis = {
+                diagnosticSeverityOverrides = {
+                  reportUndefinedVariable = 'error', -- Using variables that don't exist
+                  reportGeneralTypeIssues = 'error', -- Basic type mismatches that will definitely fail
+                  reportAssignmentType = 'error', -- Assigning wrong types that will fail at runtime
+                  reportAttributeAccessIssue = 'error', -- Accessing attributes that might not exist
+
+                  reportOptionalSubscript = 'warning', -- Possible None indexing
+                  reportOptionalMemberAccess = 'warning', -- Possible None attribute access
+                  reportOptionalCall = 'warning', -- Calling something that might be None
+                  reportOptionalIterable = 'warning', -- Iterating over possible None
+                  reportOptionalContextManager = 'warning', -- Using possible None in with statement
+                  reportOptionalOperand = 'warning', -- Operations with possible None
+                  reportReturnType = 'warning', -- Return type mismatches
+                  reportArgumentType = 'warning', -- Wrong argument types
+                  reportUnusedParameter = 'warning', -- Function parameter that's never used in the function
+
+                  reportUnusedImport = 'information', -- When you've imported something but never use it
+                  reportUnusedCallResult = 'information', -- When you've imported something but never use it
+                  reportDeprecated = 'information', -- Using features marked as deprecated (like old syntax)
+                  reportMissingParameterType = 'information', -- Function parameters without type hints
+                  reportUnknownParameterType = 'information', -- Can't determine the type of a parameter
+                  reportUnknownMemberType = 'information', -- Can't determine the type of an attribute/method
+                  reportUnknownVariableType = 'information', -- Can't determine type of a variable
+                  reportUnknownArgumentType = 'information', -- Can't determine type of an argument passed to function
+                  reportImplicitOverride = 'information', -- Method overrides parent class method without @override decorator
+                  reportPrivateUsage = 'information', -- Using private members (with leading underscore) from outside
+                  reportMissingTypeStubs = 'information', -- Package doesn't have type stub files (.pyi)
+
+                  reportUnknownLambdaType = 'none', -- When lambda doesn't have typing
+                },
+              },
+            },
+          },
+        },
+
+        -- pyright = {
+        --   settings = {
+        --     python = {
+        --       analysis = {
+        --         diagnosticSeverityOverrides = {
+        --           reportGeneralTypeIssues = 'error',
+        --           reportAssignmentType = 'error',
+        --
+        --           -- Turn off or reduce severity for all typing-related issues
+        --           reportAttributeAccessIssue = 'error',
+        --           reportReturnType = 'error',
+        --           reportArgumentType = 'error',
+        --           reportUnusedImport = 'error',
+        --           reportDeprecated = 'error',
+        --           reportMissingParameterType = 'error',
+        --           reportUnknownParameterType = 'error',
+        --           reportUnknownMemberType = 'error',
+        --           reportUnknownVariableType = 'error',
+        --           reportUnknownArgumentType = 'error',
+        --           reportImplicitOverride = 'error',
+        --           reportPrivateUsage = 'error',
+        --           reportMissingTypeStubs = 'error',
+        --           reportUndefinedVariable = 'error',
+        --           reportOptionalSubscript = 'error',
+        --           reportOptionalMemberAccess = 'error',
+        --           reportOptionalCall = 'error',
+        --           reportOptionalIterable = 'error',
+        --           reportOptionalContextManager = 'error',
+        --           reportOptionalOperand = 'error',
+        --           reportUnusedParameter = 'error',
+        --         },
+        --       },
+        --     },
+        --   },
+        -- },
+        --
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -1159,16 +1299,17 @@ require('lazy').setup({
           --
           -- <c-l> will move you to the right of each of the expansion locations.
           -- <c-h> is similar, except moving you backwards.
-          ['<C-l>'] = cmp.mapping(function()
-            if luasnip.expand_or_locally_jumpable() then
-              luasnip.expand_or_jump()
-            end
-          end, { 'i', 's' }),
-          ['<C-h>'] = cmp.mapping(function()
-            if luasnip.locally_jumpable(-1) then
-              luasnip.jump(-1)
-            end
-          end, { 'i', 's' }),
+
+          -- ['<C-l>'] = cmp.mapping(function()
+          --   if luasnip.expand_or_locally_jumpable() then
+          --     luasnip.expand_or_jump()
+          --   end
+          -- end, { 'i', 's' }),
+          -- ['<C-h>'] = cmp.mapping(function()
+          --   if luasnip.locally_jumpable(-1) then
+          --     luasnip.jump(-1)
+          --   end
+          -- end, { 'i', 's' }),
 
           -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
           --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
