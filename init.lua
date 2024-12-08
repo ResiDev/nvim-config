@@ -195,7 +195,6 @@ vim.opt.rtp:prepend(lazypath)
 -- NOTE: PLUGINS
 require('lazy').setup({
   -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  'norcalli/nvim-colorizer.lua',
   {
     'rachartier/tiny-inline-diagnostic.nvim',
     event = 'VeryLazy', -- Or `LspAttach`
@@ -235,47 +234,86 @@ require('lazy').setup({
     end,
   },
   {
-    'gbprod/substitute.nvim',
-    config = function()
-      require('substitute').setup {} -- Setup with default settings
-
-      -- Basic substitution
-      vim.keymap.set('n', '<leader>p', require('substitute').operator, { noremap = true })
-      vim.keymap.set('n', '<leader>ps', require('substitute').line, { noremap = true })
-      vim.keymap.set('n', '<leader>pS', require('substitute').eol, { noremap = true })
-      vim.keymap.set('x', '<leader>p', require('substitute').visual, { noremap = true })
-    end,
-  },
-
-  {
     'jinh0/eyeliner.nvim', -- Adds highlighting for f/F jumps
     config = function()
       require('eyeliner').setup { highlight_on_key = true }
     end,
   },
-  -- 'christoomey/vim-tmux-navigator', -- tmux navigator I was using before
-  -- lazy.nvim
   {
     'folke/snacks.nvim',
+    priority = 1000, -- Add this since it's recommended in the docs
+    lazy = false, -- Add this since some features need early loading
     opts = {
-      lazygit = {
-        -- your lazygit configuration comes here
-        -- or leave it empty to use the default settings
-        -- refer to the configuration section below
+      lazygit = { enabled = true },
+      notifier = { enabled = true },
+      quickfile = { enabled = true },
+      terminal = { enabled = true },
+      scratch = {
+        enabled = true,
+        win_by_ft = {
+          python = {
+            keys = {
+              ['source'] = {
+                '<leader>r',
+                function(self)
+                  vim.cmd 'write !python3'
+                end,
+                desc = 'Run Python buffer',
+                mode = { 'n', 'x' },
+              },
+            },
+          },
+        },
       },
     },
     keys = {
-      vim.keymap.set('n', '<leader>gg', function()
-        require('snacks').lazygit()
-      end, { desc = 'Open LazyGit' }),
-      vim.keymap.set('n', '<leader>gl', function()
-        require('snacks').lazygit.log()
-      end, { desc = 'Open LazyGit Log' }),
-      vim.keymap.set('n', '<leader>gf', function()
-        require('snacks').lazygit.log_file()
-      end, { desc = 'Open LazyGit File Log' }),
+      -- Git
+      {
+        '<leader>gg',
+        function()
+          require('snacks').lazygit()
+        end,
+        desc = 'Open LazyGit',
+      },
+      {
+        '<leader>gl',
+        function()
+          require('snacks').lazygit.log()
+        end,
+        desc = 'Open LazyGit Log',
+      },
+      {
+        '<leader>gf',
+        function()
+          require('snacks').lazygit.log_file()
+        end,
+        desc = 'Open LazyGit File Log',
+      },
+      --Terminal
+      {
+        '<leader>t',
+        function()
+          Snacks.terminal()
+        end,
+        desc = 'Toggle Terminal',
+      },
+      {
+        '<leader>.',
+        function()
+          Snacks.scratch()
+        end,
+        desc = 'Toggle Scratch Buffer',
+      },
+      {
+        '<leader>S',
+        function()
+          Snacks.scratch.select()
+        end,
+        desc = 'Select Scratch Buffer',
+      },
     },
   },
+
   {
     'folke/flash.nvim',
     event = 'VeryLazy',
@@ -478,6 +516,8 @@ require('lazy').setup({
     end,
   },
 
+  { 'akinsho/git-conflict.nvim', version = '*', config = true },
+
   { -- Adds git signs to gutter, staging stuff with <leader>h, [c and ]c  to navigate "hunks" (change blocks)
     'lewis6991/gitsigns.nvim',
     event = { 'BufReadPre', 'BufNewFile' },
@@ -602,13 +642,6 @@ require('lazy').setup({
       },
     },
   },
-
-  -- NOTE: Plugins can specify dependencies.
-  --
-  -- The dependencies are proper plugin specifications as well - anything
-  -- you do for a plugin at the top level, you can do for a dependency.
-  --
-  -- Use the `dependencies` key to specify the dependencies of a particular plugin
 
   {
     'nvim-tree/nvim-web-devicons',
@@ -885,7 +918,9 @@ require('lazy').setup({
       },
     },
   },
+
   { 'Bilal2453/luvit-meta', lazy = true },
+
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
@@ -992,11 +1027,11 @@ require('lazy').setup({
           -- code, if the language server you are using supports them
           --
           -- This may be unwanted, since they displace some of your code
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-            map('<leader>th', function()
-              vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-            end, '[T]oggle Inlay [H]ints')
-          end
+          -- if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+          --   map('<leader>th', function()
+          --     vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
+          --   end, '[T]oggle Inlay [H]ints')
+          -- end
         end,
       })
 
@@ -1329,43 +1364,34 @@ require('lazy').setup({
     end,
   },
 
-  -- {
-  --   'Exafunction/codeium.nvim',
-  --   dependencies = {
-  --     'nvim-lua/plenary.nvim',
-  --     'hrsh7th/nvim-cmp',
-  --   },
-  --   config = function()
-  --     require('codeium').setup {
-  --       autocompletion = true,
-  --       virtual_text = {
-  --         enabled = true,
-  --         filetypes = {
-  --           python = true,
-  --           html = true,
-  --           javascript = true,
-  --           typescript = true,
-  --         },
-  --         default_filetype_enabled = true,
-  --       },
-  --     }
-  --   end,
-  -- },
+  {
+    'Exafunction/codeium.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'hrsh7th/nvim-cmp',
+    },
+    config = function()
+      require('codeium').setup {
+        autocompletion = true,
+        virtual_text = {
+          enabled = true,
+          filetypes = {
+            python = true,
+            html = true,
+            javascript = true,
+            typescript = true,
+          },
+          default_filetype_enabled = true,
+        },
+      }
+    end,
+  },
 
-  { -- You can easily change to a different colorscheme.
-    -- Change the name of the colorscheme plugin below, and then
-    -- change the command in the config to whatever the name of that colorscheme is.
-    --
-    -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
+  {
     'folke/tokyonight.nvim',
-    priority = 1000, -- Make sure to load this before all the other start plugins.
+    priority = 9000, -- Make sure to load this before all the other start plugins.
     init = function()
-      -- Load the colorscheme here.
-      -- Like many other themes, this one has different styles, and you could load
-      -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
-
-      -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
   },
@@ -1388,11 +1414,7 @@ require('lazy').setup({
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
-      -- Simple and easy statusline.
-      --  You could remove this setup call if you don't like it,
-      --  and try some other statusline plugin
       local statusline = require 'mini.statusline'
-      -- set use_icons to true if you have a Nerd Font
       statusline.setup { use_icons = vim.g.have_nerd_font }
 
       -- You can configure sections in the statusline by overriding their
@@ -1402,9 +1424,6 @@ require('lazy').setup({
       statusline.section_location = function()
         return '%2l:%-2v'
       end
-
-      -- ... and there is more!
-      --  Check out: https://github.com/echasnovski/mini.nvim
     end,
   },
 
