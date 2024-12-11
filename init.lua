@@ -248,6 +248,7 @@ require('lazy').setup({
       notifier = { enabled = true },
       quickfile = { enabled = true },
       terminal = { enabled = true },
+      dashboard = { enabled = true },
       scratch = {
         enabled = true,
         win_by_ft = {
@@ -758,6 +759,7 @@ require('lazy').setup({
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
           },
+          fzf = {},
         },
       }
 
