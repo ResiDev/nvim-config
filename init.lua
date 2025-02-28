@@ -77,9 +77,9 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
 -- Indentation settings
 vim.opt.expandtab = true -- Convert tabs to spaces
-vim.opt.shiftwidth = 4 -- Number of spaces for indentation
-vim.opt.tabstop = 4 -- Number of spaces a tab counts for
-vim.opt.softtabstop = 4 -- Number of spaces a tab counts for while editing
+vim.opt.shiftwidth = 4   -- Number of spaces for indentation
+vim.opt.tabstop = 4      -- Number of spaces a tab counts for
+vim.opt.softtabstop = 4  -- Number of spaces a tab counts for while editing
 
 -- For specific file types that commonly use 2 spaces
 vim.api.nvim_create_autocmd('FileType', {
@@ -102,10 +102,17 @@ vim.opt.scrolloff = 10
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
+vim.keymap.set('i', '<C-BS>', '<C-w>', { desc = 'Delete word backward' })
+vim.keymap.set('i', '<C-h>', '<C-w>', { desc = 'Delete word backward' }) -- Terminal compatibility
+
+-- [[ Remapped keys ]]
+vim.keymap.set('n', 's', 'r', { noremap = true })
+vim.keymap.set('n', '<C-u>', '<C-u>zz', { noremap = true })
+vim.keymap.set('n', '<C-d>', '<C-d>zz', { noremap = true })
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+vim.keymap.set('n', '<Esc>', ':noh', { noremap = true })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -129,28 +136,12 @@ vim.diagnostic.config {
 -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
--- Python files
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'python',
-  callback = function()
-    vim.keymap.set('n', '<Leader><CR>', ':w<CR>:!uv run %<CR>', { buffer = true })
-  end,
-})
-
--- Zig files
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'zig',
-  callback = function()
-    vim.keymap.set('n', '<Leader><CR>', ':w<CR>:!zig run %<CR>', { buffer = true })
-  end,
-})
-
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
 --
 --  See `:help wincmd` for a list of all window commands
--- vim.keymap.set('n', 'gh', '<C-w><C-h>', { desc = 'Move focus to the left window' })
--- vim.keymap.set('n', 'gl', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', 'gh', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', 'gl', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', 'gk', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 vim.keymap.set('n', 'gj', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 -- vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
@@ -167,6 +158,70 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
     vim.highlight.on_yank()
+  end,
+})
+
+-- Nvim Terminal
+vim.api.nvim_set_keymap('t', '<Esc>', '<C-\\><C-n>', { noremap = true }) -- Map Esc in terminal
+local job_id = 0
+vim.api.nvim_create_autocmd('TermOpen', {
+  callback = function()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+  end,
+})
+vim.keymap.set('n', '<leader>t', function()
+  vim.cmd.vnew()
+  vim.cmd.terminal()
+  vim.cmd.wincmd 'J'
+  vim.cmd 'startinsert'
+  vim.api.nvim_win_set_height(0, 15)
+end, { desc = 'Terminal: Open' })
+
+-- Terminal and run python
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'python',
+  callback = function()
+    local file_path = vim.api.nvim_buf_get_name(0)
+    vim.keymap.set('n', '<leader><CR>', function()
+      vim.cmd.vnew()
+      vim.cmd.terminal()
+      job_id = vim.bo.channel
+      vim.cmd.wincmd 'J'
+      vim.api.nvim_win_set_height(0, 15)
+      vim.fn.chansend(job_id, { 'uv run ' .. file_path .. '\r\n' })
+    end)
+  end,
+})
+
+-- Terminal and run zig
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'zig',
+  callback = function()
+    local file_path = vim.api.nvim_buf_get_name(0)
+    vim.keymap.set('n', '<leader><CR>', function()
+      vim.cmd.vnew()
+      vim.cmd.terminal()
+      job_id = vim.bo.channel
+      vim.cmd.wincmd 'J'
+      vim.api.nvim_win_set_height(0, 15)
+      vim.fn.chansend(job_id, { 'zig run' .. file_path .. '\r\n' })
+    end)
+  end,
+})
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'typescript',
+  callback = function()
+    local file_path = vim.api.nvim_buf_get_name(0)
+    vim.keymap.set('n', '<leader><CR>', function()
+      vim.cmd.vnew()
+      vim.cmd.terminal()
+      job_id = vim.bo.channel
+      vim.cmd.wincmd 'J'
+      vim.api.nvim_win_set_height(0, 15)
+      vim.fn.chansend(job_id, { 'ts-node ' .. file_path .. '\r\n' })
+    end)
   end,
 })
 
@@ -196,9 +251,16 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- 'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   {
+    "nvzone/typr",
+    dependencies = "nvzone/volt",
+    opts = {},
+    cmd = { "Typr", "TyprStats" },
+  },
+
+  {
     'rachartier/tiny-inline-diagnostic.nvim',
     event = 'VeryLazy', -- Or `LspAttach`
-    priority = 1000, -- needs to be loaded in first
+    priority = 1000,    -- needs to be loaded in first
     config = function()
       require('tiny-inline-diagnostic').setup {
         preset = 'modern',
@@ -233,21 +295,23 @@ require('lazy').setup({
       }
     end,
   },
-  {
-    'jinh0/eyeliner.nvim', -- Adds highlighting for f/F jumps
-    config = function()
-      require('eyeliner').setup { highlight_on_key = true }
-    end,
-  },
+
+  -- {
+  --   'jinh0/eyeliner.nvim', -- Adds highlighting for f/F jumps
+  --   config = function()
+  --     require('eyeliner').setup { highlight_on_key = true }
+  --   end,
+  -- },
+
   {
     'folke/snacks.nvim',
     priority = 1000, -- Add this since it's recommended in the docs
-    lazy = false, -- Add this since some features need early loading
+    lazy = false,    -- Add this since some features need early loading
     opts = {
       lazygit = { enabled = true },
       notifier = { enabled = true },
       quickfile = { enabled = true },
-      terminal = { enabled = true },
+      -- terminal = { enabled = true },
       dashboard = { enabled = true },
       scratch = {
         enabled = true,
@@ -290,14 +354,6 @@ require('lazy').setup({
         end,
         desc = 'Open LazyGit File Log',
       },
-      --Terminal
-      {
-        '<leader>t',
-        function()
-          Snacks.terminal()
-        end,
-        desc = 'Toggle Terminal',
-      },
       {
         '<leader>.',
         function()
@@ -318,17 +374,31 @@ require('lazy').setup({
   {
     'folke/flash.nvim',
     event = 'VeryLazy',
+
     ---@type Flash.Config
-    opts = {},
-  -- stylua: ignore
-  
-  -- Changing highlight colour
-  config = function()
-    vim.api.nvim_set_hl(0, 'FlashLabel', { bg = '#FF0000', fg = '#000000', bold = true })  -- Bright red background with black text
-  end,
+    opts = {
+      modes = {
+        char = {
+          enabled = false,
+          jump_labels = false
+        }
+      },
+    },
+
+    -- stylua: ignore
+    -- Changing highlight colour
+    init = function()
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        pattern = "*",
+        callback = function()
+          vim.api.nvim_set_hl(0, 'FlashLabel', { bg = '#FF0000', fg = '#000000', bold = true })
+        end,
+      })
+    end,
+
     keys = {
       {
-        's',
+        'f',
         mode = { 'n', 'x', 'o' },
         function()
           require('flash').jump()
@@ -336,7 +406,7 @@ require('lazy').setup({
         desc = 'Flash',
       },
       {
-        'S',
+        'F',
         mode = { 'n', 'x', 'o' },
         function()
           require('flash').treesitter()
@@ -344,7 +414,7 @@ require('lazy').setup({
         desc = 'Flash Treesitter',
       },
       {
-        '<c-s>',
+        '<c-h>',
         mode = { 'c' },
         function()
           require('flash').toggle()
@@ -353,6 +423,7 @@ require('lazy').setup({
       },
     },
   },
+
   {
     'folke/trouble.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
@@ -414,16 +485,16 @@ require('lazy').setup({
       storage = 'json',
     },
     keys = {
-      { '<leader>a', '<cmd>Grapple toggle<cr>', desc = 'Tag a file' },
-      { '<c-e>', '<cmd>Grapple toggle_tags<cr>', desc = 'Toggle tags menu' },
+      { '<leader>a', '<cmd>Grapple toggle<cr>',          desc = 'Tag a file' },
+      { '<c-e>',     '<cmd>Grapple toggle_tags<cr>',     desc = 'Toggle tags menu' },
 
-      { '<leader>1', '<cmd>Grapple select index=1<cr>', desc = 'Select first tag' },
-      { '<leader>2', '<cmd>Grapple select index=2<cr>', desc = 'Select second tag' },
-      { '<leader>3', '<cmd>Grapple select index=3<cr>', desc = 'Select third tag' },
-      { '<leader>4', '<cmd>Grapple select index=4<cr>', desc = 'Select fourth tag' },
+      { '<leader>1', '<cmd>Grapple select index=1<cr>',  desc = 'Select first tag' },
+      { '<leader>2', '<cmd>Grapple select index=2<cr>',  desc = 'Select second tag' },
+      { '<leader>3', '<cmd>Grapple select index=3<cr>',  desc = 'Select third tag' },
+      { '<leader>4', '<cmd>Grapple select index=4<cr>',  desc = 'Select fourth tag' },
 
-      { '<c-k>', '<cmd>Grapple cycle_tags next<cr>', desc = 'Go to next tag' },
-      { '<c-j>', '<cmd>Grapple cycle_tags prev<cr>', desc = 'Go to previous tag' },
+      { '<c-j>',     '<cmd>Grapple cycle_tags next<cr>', desc = 'Go to next tag' },
+      { '<c-k>',     '<cmd>Grapple cycle_tags prev<cr>', desc = 'Go to previous tag' },
     },
   },
 
@@ -589,7 +660,7 @@ require('lazy').setup({
   -- which loads which-key before all the UI elements are loaded. Events can be
   -- normal autocommands events (`:help autocmd-events`).
 
-  { -- Useful plugin to show you pending keybinds.
+  {                     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
@@ -634,7 +705,7 @@ require('lazy').setup({
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = 'Telescope search' },
         { '<leader>w', group = '[W]orkspace' },
-        { '<leader>t', group = '[T]oggle' },
+        { '<leader>t', group = 'Terminal' },
         { '<leader>g', group = 'Git Hunk', mode = { 'n', 'v' } },
         { '<leader>e', group = 'Yazi file manager' },
         { '<leader>m', group = '󰆿 MultiCursor' },
@@ -696,7 +767,7 @@ require('lazy').setup({
       integrations = {
         resolve_relative_path_application = 'realpath', -- use "grealpath" if you're on macOS
       },
-      clipboard_register = 'unnamedplus', -- uses system clipboard
+      clipboard_register = 'unnamedplus',               -- uses system clipboard
     },
   },
 
@@ -724,7 +795,7 @@ require('lazy').setup({
       { 'nvim-telescope/telescope-ui-select.nvim' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
     },
     -- The easiest way to use Telescope, is to start by doing something like:
     --  :Telescope help_tags
@@ -845,15 +916,15 @@ require('lazy').setup({
 
       -- NOTE: Haven't messed around with this much yet
       require('nvim-dap-virtual-text').setup {
-        enabled = true, -- enable this plugin (the default)
-        enabled_commands = true, -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
+        enabled = true,                     -- enable this plugin (the default)
+        enabled_commands = true,            -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
         highlight_changed_variables = true, -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
-        highlight_new_as_changed = false, -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
-        show_stop_reason = true, -- show stop reason when stopped for exceptions
-        commented = false, -- prefix virtual text with comment string
-        only_first_definition = true, -- only show virtual text at first definition (if there are multiple)
-        all_references = false, -- show virtual text on all all references of the variable (not only definitions)
-        clear_on_continue = false, -- clear virtual text on "continue" (might cause flickering when stepping)
+        highlight_new_as_changed = false,   -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
+        show_stop_reason = true,            -- show stop reason when stopped for exceptions
+        commented = false,                  -- prefix virtual text with comment string
+        only_first_definition = true,       -- only show virtual text at first definition (if there are multiple)
+        all_references = false,             -- show virtual text on all all references of the variable (not only definitions)
+        clear_on_continue = false,          -- clear virtual text on "continue" (might cause flickering when stepping)
         --- A callback that determines how a variable is displayed or whether it should be omitted
         --- @param variable Variable https://microsoft.github.io/debug-adapter-protocol/specification#Types_Variable
         --- @param buf number
@@ -873,8 +944,8 @@ require('lazy').setup({
         virt_text_pos = vim.fn.has 'nvim-0.10' == 1 and 'inline' or 'eol',
 
         -- experimental features:
-        all_frames = false, -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
-        virt_lines = false, -- show virtual lines instead of virtual text (will flicker!)
+        all_frames = false,      -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
+        virt_lines = false,      -- show virtual lines instead of virtual text (will flicker!)
         virt_text_win_col = nil, -- position the virtual text at a fixed window column (starting from the first text column) ,
         -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
       }
@@ -893,7 +964,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>j', require('dap').step_over, { desc = 'Debug: Step Over' })
       vim.keymap.set('n', '<leader>i', require('dap').step_into, { desc = 'Debug: Step Into' })
       vim.keymap.set('n', '<C-l>', require('dap').step_over, { desc = 'Debug: Step Over' })
-      vim.keymap.set('n', '<C-i>', require('dap').step_into, { desc = 'Debug: Step Into' })
+      vim.keymap.set('n', '<C-h>', require('dap').step_into, { desc = 'Debug: Step Into' })
       vim.keymap.set('n', '<leader>do', require('dap').step_out, { desc = 'Debug: Step Out' })
 
       -- UI Controls
@@ -921,7 +992,7 @@ require('lazy').setup({
     },
   },
 
-  { 'Bilal2453/luvit-meta', lazy = true },
+  { 'Bilal2453/luvit-meta',      lazy = true },
 
   {
     -- Main LSP Configuration
@@ -934,7 +1005,7 @@ require('lazy').setup({
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', opts = {} },
+      { 'j-hui/fidget.nvim',       opts = {} },
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
     },
@@ -990,7 +1061,7 @@ require('lazy').setup({
 
           -- Execute a code action, usually your cursor needs to be on top of an error
           -- or a suggestion from your LSP for this to activate.
-          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
+          map('<leader>o', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header.
@@ -1037,8 +1108,6 @@ require('lazy').setup({
         end,
       })
 
-      -- LSP servers and clients are able to communicate to each other what features they support.
-      --  By default, Neovim doesn't support everything that is in the LSP specification.
       --  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
       --  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
       local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -1053,6 +1122,7 @@ require('lazy').setup({
       --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
+
       local servers = {
         -- clangd = {},
         -- gopls = {},
@@ -1070,77 +1140,12 @@ require('lazy').setup({
           settings = {
             basedpyright = {
               analysis = {
-                diagnosticSeverityOverrides = {
-                  reportUndefinedVariable = 'error', -- Using variables that don't exist
-                  reportGeneralTypeIssues = 'error', -- Basic type mismatches that will definitely fail
-                  reportAssignmentType = 'error', -- Assigning wrong types that will fail at runtime
-                  reportAttributeAccessIssue = 'error', -- Accessing attributes that might not exist
-
-                  reportOptionalSubscript = 'warning', -- Possible None indexing
-                  reportOptionalMemberAccess = 'warning', -- Possible None attribute access
-                  reportOptionalCall = 'warning', -- Calling something that might be None
-                  reportOptionalIterable = 'warning', -- Iterating over possible None
-                  reportOptionalContextManager = 'warning', -- Using possible None in with statement
-                  reportOptionalOperand = 'warning', -- Operations with possible None
-                  reportReturnType = 'warning', -- Return type mismatches
-                  reportArgumentType = 'warning', -- Wrong argument types
-                  reportUnusedParameter = 'warning', -- Function parameter that's never used in the function
-
-                  reportUnusedImport = 'information', -- When you've imported something but never use it
-                  reportUnusedCallResult = 'information', -- When you've imported something but never use it
-                  reportDeprecated = 'information', -- Using features marked as deprecated (like old syntax)
-                  reportMissingParameterType = 'information', -- Function parameters without type hints
-                  reportUnknownParameterType = 'information', -- Can't determine the type of a parameter
-                  reportUnknownMemberType = 'information', -- Can't determine the type of an attribute/method
-                  reportUnknownVariableType = 'information', -- Can't determine type of a variable
-                  reportUnknownArgumentType = 'information', -- Can't determine type of an argument passed to function
-                  reportImplicitOverride = 'information', -- Method overrides parent class method without @override decorator
-                  reportPrivateUsage = 'information', -- Using private members (with leading underscore) from outside
-                  reportMissingTypeStubs = 'information', -- Package doesn't have type stub files (.pyi)
-
-                  reportUnknownLambdaType = 'none', -- When lambda doesn't have typing
-                },
+                typeCheckingMode = 'standard',
               },
             },
           },
         },
 
-        -- pyright = {
-        --   settings = {
-        --     python = {
-        --       analysis = {
-        --         diagnosticSeverityOverrides = {
-        --           reportGeneralTypeIssues = 'error',
-        --           reportAssignmentType = 'error',
-        --
-        --           -- Turn off or reduce severity for all typing-related issues
-        --           reportAttributeAccessIssue = 'error',
-        --           reportReturnType = 'error',
-        --           reportArgumentType = 'error',
-        --           reportUnusedImport = 'error',
-        --           reportDeprecated = 'error',
-        --           reportMissingParameterType = 'error',
-        --           reportUnknownParameterType = 'error',
-        --           reportUnknownMemberType = 'error',
-        --           reportUnknownVariableType = 'error',
-        --           reportUnknownArgumentType = 'error',
-        --           reportImplicitOverride = 'error',
-        --           reportPrivateUsage = 'error',
-        --           reportMissingTypeStubs = 'error',
-        --           reportUndefinedVariable = 'error',
-        --           reportOptionalSubscript = 'error',
-        --           reportOptionalMemberAccess = 'error',
-        --           reportOptionalCall = 'error',
-        --           reportOptionalIterable = 'error',
-        --           reportOptionalContextManager = 'error',
-        --           reportOptionalOperand = 'error',
-        --           reportUnusedParameter = 'error',
-        --         },
-        --       },
-        --     },
-        --   },
-        -- },
-        --
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -1157,19 +1162,13 @@ require('lazy').setup({
         },
       }
 
-      -- Ensure the servers and tools above are installed
-      --  To check the current status of installed tools and/or manually install
-      --  other tools, you can run
-      --    :Mason
-      --
-      --  You can press `g?` for help in this menu.
       require('mason').setup()
 
-      -- You can add other tools here that you want Mason to install
-      -- for you, so that they are available from within Neovim.
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'basedpyright',
+        'ruff',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1220,31 +1219,32 @@ require('lazy').setup({
           lsp_format = lsp_format_opt,
         }
       end,
-      formatters = {
-        prettierd = {
-          env = {
-            PRETTIERD_LOCAL_PRETTIER_ONLY = 'true',
-          },
-        },
-        -- xmlformatter = {
-        --   command = 'xmlformat',
-        --   args = { '-' },
-        -- },
-      },
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        python = { 'ruff' },
-        html = { 'prettierd' },
-        css = { 'prettierd' },
-        javascript = { 'prettierd' },
-        javascriptreact = { 'prettierd' },
-        typescript = { 'prettierd' },
-        typescriptreact = { 'prettierd' },
-        json = { 'prettierd' },
-        yaml = { 'prettierd' },
-        -- xml = { 'xmlformatter' },
-        xml = { 'xmllint' },
-      },
+      -- formatters = {
+      --   prettierd = {
+      --     env = {
+      --       PRETTIERD_LOCAL_PRETTIER_ONLY = 'true',
+      --     },
+      --   },
+      --   -- xmlformatter = {
+      --   --   command = 'xmlformat',
+      --   --   args = { '-' },
+      --   -- },
+      -- },
+      -- formatters_by_ft = {
+      --   lua = { 'stylua' },
+      --   python = { 'ruff' },
+      --   html = { 'prettierd' },
+      astro = { 'prettier' },
+      --   css = { 'prettierd' },
+      --   javascript = { 'prettierd' },
+      --   javascriptreact = { 'prettierd' },
+      --   typescript = { 'prettierd' },
+      --   typescriptreact = { 'prettierd' },
+      --   json = { 'prettierd' },
+      --   yaml = { 'prettierd' },
+      --   -- xml = { 'xmlformatter' },
+      --   xml = { 'xmllint' },
+      -- },
     },
   },
 
@@ -1313,46 +1313,19 @@ require('lazy').setup({
           ['<C-f>'] = cmp.mapping.scroll_docs(4),
 
           -- Accept ([y]es) the completion.
-          --  This will auto-import if your LSP supports it.
-          --  This will expand snippets if the LSP sent a snippet.
           ['<C-y>'] = cmp.mapping.confirm { select = true },
-
-          -- If you prefer more traditional completion keymaps,
-          -- you can uncomment the following lines
-          ['<CR>'] = cmp.mapping.confirm { select = true },
+          ['<CR>'] = cmp.mapping.confirm { select = true }, -- Enter
           --['<Tab>'] = cmp.mapping.select_next_item(),
           --['<S-Tab>'] = cmp.mapping.select_prev_item(),
 
           -- Manually trigger a completion from nvim-cmp.
-          --  Generally you don't need this, because nvim-cmp will display
-          --  completions whenever it has completion options available.
-          ['<C-Space>'] = cmp.mapping.complete {},
+          -- ['<C-Space>'] = cmp.mapping.complete {},
 
-          -- Think of <c-l> as moving to the right of your snippet expansion.
-          --  So if you have a snippet that's like:
-          --  function $name($args)
-          --    $body
-          --  end
-          --
-          -- <c-l> will move you to the right of each of the expansion locations.
-          -- <c-h> is similar, except moving you backwards.
-
-          -- ['<C-l>'] = cmp.mapping(function()
-          --   if luasnip.expand_or_locally_jumpable() then
-          --     luasnip.expand_or_jump()
-          --   end
-          -- end, { 'i', 's' }),
-          -- ['<C-h>'] = cmp.mapping(function()
-          --   if luasnip.locally_jumpable(-1) then
-          --     luasnip.jump(-1)
-          --   end
-          -- end, { 'i', 's' }),
-
-          -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-          --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
         },
         sources = {
           -- { name = 'codeium' },
+          -- { name = "supermaven" }, -- Annoying as it makes enter key accept the suggestion
+          { name = "codecompanion", },
           {
             name = 'lazydev',
             -- set group index to 0 to skip loading LuaLS completions as lazydev recommends it
@@ -1367,26 +1340,92 @@ require('lazy').setup({
   },
 
   {
-    'Exafunction/codeium.nvim',
-    dependencies = {
-      'nvim-lua/plenary.nvim',
-      'hrsh7th/nvim-cmp',
-    },
+    "supermaven-inc/supermaven-nvim",
     config = function()
-      require('codeium').setup {
-        autocompletion = true,
-        virtual_text = {
-          enabled = true,
-          filetypes = {
-            python = true,
-            html = true,
-            javascript = true,
-            typescript = true,
-          },
-          default_filetype_enabled = true,
-        },
-      }
+      require("supermaven-nvim").setup({
+        keymaps = {
+          accept_suggestion = "<Tab>",
+          accept_word = "<C-n>"
+        }
+      })
+      vim.keymap.set('n', '<leader>sm', "<cmd>SupermavenToggle<cr>",
+        { desc = 'Supermaven Toggle' })
     end,
+  },
+
+  -- {
+  --   'Exafunction/codeium.nvim',
+  --   dependencies = {
+  --     'nvim-lua/plenary.nvim',
+  --     'hrsh7th/nvim-cmp',
+  --   },
+  --   config = function()
+  --     -- Setup Codeium with configuration options
+  --     require('codeium').setup {
+  --       autocompletion = true,
+  --       virtual_text = {
+  --         enabled = true,
+  --         idle_delay = 0,
+  --         filetypes = {
+  --           python = true,
+  --           html = true,
+  --           javascript = true,
+  --           typescript = true,
+  --         },
+  --         default_filetype_enabled = true,
+  --       },
+  --     }
+  --   end
+  -- },
+
+  {
+    "olimorris/codecompanion.nvim",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+    },
+    opts = { -- Add this opts table
+      adapters = {
+        anthropic = function()
+          return require("codecompanion.adapters").extend("anthropic", {
+            env = {
+              api_key = "replace"
+            },
+          })
+        end,
+        gemini = function()
+          return require("codecompanion.adapters").extend("gemini", {
+            env = {
+              api_key = "replace",
+            },
+          })
+        end,
+      },
+      strategies = {
+        chat = {
+          adapter = "gemini",
+          keymaps = {
+            send = {
+              modes = { n = "<C-s>", i = "<C-s>" },
+            },
+            next_chat = {
+              modes = { n = "<C-n>", i = "<C-n>" },
+            },
+            previous_chat = {
+              modes = { n = "<C-p>", i = "<C-p>" },
+            }
+
+
+          }
+        },
+        inline = {
+          adapter = "gemini",
+        },
+      },
+    },
+    vim.keymap.set('n', '<leader>C', "<cmd>CodeCompanionActions<cr>", { desc = 'Code Companion Actions' }),
+    vim.keymap.set('v', '<C-c>', ":CodeCompanion", { desc = 'Code Companion Actions' }),
+    vim.keymap.set('n', '<leader>c', "<cmd>CodeCompanionChat Toggle<cr>", { desc = 'Code Companion Chat' }),
   },
 
   {
@@ -1449,7 +1488,6 @@ require('lazy').setup({
         'vimdoc',
         'python',
         'zig',
-        'mojo',
         'rust',
       },
       -- Autoinstall languages that are not installed
@@ -1464,109 +1502,109 @@ require('lazy').setup({
       indent = { enable = true, disable = { 'ruby' } },
     },
 
-    {
-      'nvim-treesitter/nvim-treesitter-context',
-      dependencies = { 'nvim-treesitter/nvim-treesitter' },
-      config = function()
-        require('treesitter-context').setup {
-          enable = true, -- Can also be toggled with :TSContextEnable, :TSContextDisable, :TSContextToggle commands
-          multiwindow = false, -- If true, shows context in all Neovim windows
-          max_lines = 5,
-          multiline_threshold = 1,
-          trim_scope = 'inner',
-          mode = 'cursor',
-          line_numbers = true,
-        }
-      end,
-    },
-
-    {
-      'nvim-treesitter/nvim-treesitter-textobjects',
-      dependencies = { 'nvim-treesitter/nvim-treesitter' },
-      config = function()
-        require('nvim-treesitter.configs').setup {
-          textobjects = {
-            select = {
-              enable = true,
-              lookahead = true, -- Automatically jump forward to matching textobj
-              keymaps = {
-                -- You use: va to select outer, vi to select inner
-                ['af'] = '@function.outer', -- Select outer part of a function
-                ['if'] = '@function.inner', -- Select inner part of a function
-                ['ac'] = '@class.outer', -- Select outer part of a class
-                ['ic'] = '@class.inner', -- Select inner part of a class
-              },
-            },
-            move = {
-              enable = true,
-              set_jumps = true,
-              goto_next_start = {
-                ['[f'] = '@function.outer', -- Function start
-                ['[c'] = '@class.outer', -- Class start
-                ['[l'] = '@loop.outer', -- Loop start
-                ['[i'] = '@conditional.outer', -- If start
-              },
-              goto_next_end = {
-                [']f'] = '@function.outer', -- Function end
-                [']c'] = '@class.outer', -- Class end
-                [']l'] = '@loop.outer', -- Loop end
-                [']i'] = '@conditional.outer', -- If end
-              },
-              goto_previous_start = {
-                ['[F'] = '@function.outer', -- Previous function start
-                ['[C'] = '@class.outer', -- Previous class start
-                ['[L'] = '@loop.outer', -- Previous loop start
-                ['[I'] = '@conditional.outer', -- Previous if start
-              },
-              goto_previous_end = {
-                [']F'] = '@function.outer', -- Previous function end
-                [']C'] = '@class.outer', -- Previous class end
-                [']L'] = '@loop.outer', -- Previous loop end
-                [']I'] = '@conditional.outer', -- Previous if end
-              },
-            },
-          },
-        }
-      end,
-    },
-
-    { -- NOTE: Tresitter Refactor
-      'nvim-treesitter/nvim-treesitter-refactor',
-      dependencies = { 'nvim-treesitter/nvim-treesitter' },
-      config = function()
-        require('nvim-treesitter.configs').setup {
-          refactor = {
-            -- Highlight definitions
-            highlight_definitions = {
-              enable = true,
-              clear_on_cursor_move = true,
-            },
-            -- Highlight current scope
-            highlight_current_scope = {
-              enable = false,
-            },
-            -- Smart rename
-            -- smart_rename = {
-            --   enable = true,
-            --   keymaps = {
-            --     smart_rename = 'grr',
-            --   },
-            -- },
-            -- Navigation
-            navigation = {
-              enable = true,
-              keymaps = {
-                goto_definition = 'gnd',
-                list_definitions = 'gnD',
-                list_definitions_toc = 'gO',
-                goto_next_usage = '<a-d>',
-                goto_previous_usage = '<a-D>',
-              },
-            },
-          },
-        }
-      end,
-    },
+    -- {
+    --   'nvim-treesitter/nvim-treesitter-context',
+    --   dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    --   config = function()
+    --     require('treesitter-context').setup {
+    --       enable = true, -- Can also be toggled with :TSContextEnable, :TSContextDisable, :TSContextToggle commands
+    --       multiwindow = false, -- If true, shows context in all Neovim windows
+    --       max_lines = 5,
+    --       multiline_threshold = 1,
+    --       trim_scope = 'inner',
+    --       mode = 'cursor',
+    --       line_numbers = true,
+    --     }
+    --   end,
+    -- },
+    --
+    -- {
+    --   'nvim-treesitter/nvim-treesitter-textobjects',
+    --   dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    --   config = function()
+    --     require('nvim-treesitter.configs').setup {
+    --       textobjects = {
+    --         select = {
+    --           enable = true,
+    --           lookahead = true, -- Automatically jump forward to matching textobj
+    --           keymaps = {
+    --             -- You use: va to select outer, vi to select inner
+    --             ['af'] = '@function.outer', -- Select outer part of a function
+    --             ['if'] = '@function.inner', -- Select inner part of a function
+    --             ['ac'] = '@class.outer', -- Select outer part of a class
+    --             ['ic'] = '@class.inner', -- Select inner part of a class
+    --           },
+    --         },
+    --         move = {
+    --           enable = true,
+    --           set_jumps = true,
+    --           goto_next_start = {
+    --             [']]'] = '@function.outer', -- Function start
+    --             [']c'] = '@class.outer', -- Class start
+    --             [']l'] = '@loop.outer', -- Loop start
+    --             [']i'] = '@conditional.outer', -- If start
+    --           },
+    --           goto_next_end = {
+    --             [']['] = '@function.outer', -- Function end
+    --             [']C'] = '@class.outer', -- Class end
+    --             [']L'] = '@loop.outer', -- Loop end
+    --             [']I'] = '@conditional.outer', -- If end
+    --           },
+    --           goto_previous_start = {
+    --             ['[['] = '@function.outer', -- Previous function start
+    --             ['[c'] = '@class.outer', -- Previous class start
+    --             ['[l'] = '@loop.outer', -- Previous loop start
+    --             ['[i'] = '@conditional.outer', -- Previous if start
+    --           },
+    --           goto_previous_end = {
+    --             ['[]'] = '@function.outer', -- Previous function end
+    --             ['[C'] = '@class.outer', -- Previous class end
+    --             ['[L'] = '@loop.outer', -- Previous loop end
+    --             ['[I'] = '@conditional.outer', -- Previous if end
+    --           },
+    --         },
+    --       },
+    --     }
+    --   end,
+    -- },
+    --
+    -- { -- NOTE: Was causing issues with svelte
+    --   'nvim-treesitter/nvim-treesitter-refactor',
+    --   dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    --   config = function()
+    --     require('nvim-treesitter.configs').setup {
+    --       refactor = {
+    --         -- Highlight definitions
+    --         highlight_definitions = {
+    --           enable = true,
+    --           clear_on_cursor_move = true,
+    --         },
+    --         -- Highlight current scope
+    --         highlight_current_scope = {
+    --           enable = false,
+    --         },
+    --         -- Smart rename
+    --         -- smart_rename = {
+    --         --   enable = true,
+    --         --   keymaps = {
+    --         --     smart_rename = 'grr',
+    --         --   },
+    --         -- },
+    --         -- Navigation
+    --         navigation = {
+    --           enable = true,
+    --           keymaps = {
+    --             goto_definition = 'gnd',
+    --             list_definitions = 'gnD',
+    --             list_definitions_toc = 'gO',
+    --             goto_next_usage = '<a-d>',
+    --             goto_previous_usage = '<a-D>',
+    --           },
+    --         },
+    --       },
+    --     }
+    --   end,
+    -- },
   },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
