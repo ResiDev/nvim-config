@@ -43,15 +43,15 @@ vim.api.nvim_create_autocmd('FileType', {
 vim.api.nvim_create_autocmd('FileType', {
   pattern = 'python',
   callback = function()
-    local file_path = vim.api.nvim_buf_get_name(0)
     vim.keymap.set('n', '<leader><CR>', function()
+      local file_path = vim.api.nvim_buf_get_name(0)
       vim.cmd.vnew()
       vim.cmd.terminal()
       job_id = vim.bo.channel
       vim.cmd.wincmd 'J'
       vim.api.nvim_win_set_height(0, 15)
       vim.fn.chansend(job_id, { 'uv run ' .. file_path .. '\r\n' })
-    end)
+    end, { buffer = true })
   end,
 })
 
@@ -59,15 +59,15 @@ vim.api.nvim_create_autocmd('FileType', {
 vim.api.nvim_create_autocmd('FileType', {
   pattern = 'zig',
   callback = function()
-    local file_path = vim.api.nvim_buf_get_name(0)
     vim.keymap.set('n', '<leader><CR>', function()
+      local file_path = vim.api.nvim_buf_get_name(0)
       vim.cmd.vnew()
       vim.cmd.terminal()
       job_id = vim.bo.channel
       vim.cmd.wincmd 'J'
       vim.api.nvim_win_set_height(0, 15)
       vim.fn.chansend(job_id, { 'zig run' .. file_path .. '\r\n' })
-    end)
+    end, { buffer = true })
   end,
 })
 
@@ -75,15 +75,15 @@ vim.api.nvim_create_autocmd('FileType', {
 vim.api.nvim_create_autocmd('FileType', {
   pattern = 'typescript',
   callback = function()
-    local file_path = vim.api.nvim_buf_get_name(0)
     vim.keymap.set('n', '<leader><CR>', function()
+      local file_path = vim.api.nvim_buf_get_name(0)
       vim.cmd.vnew()
       vim.cmd.terminal()
       job_id = vim.bo.channel
       vim.cmd.wincmd 'J'
       vim.api.nvim_win_set_height(0, 15)
       vim.fn.chansend(job_id, { 'ts-node ' .. file_path .. '\r\n' })
-    end)
+    end, { buffer = true })
   end,
 })
 

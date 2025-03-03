@@ -25,8 +25,21 @@ return {
           },
         },
       },
-      picker = {},
-      explorer = {}
+      picker = {
+        sources = {
+          explorer = {
+            follow_file = true,
+            matcher = {
+              fuzzy = true,
+              freceny = true,
+              smartcase = true,
+              ignorecase = true,
+            }
+          }
+        }
+      },
+      explorer = {
+      }
     },
     keys = {
       -- Top Pickers & Explorer

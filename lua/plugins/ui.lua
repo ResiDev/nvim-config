@@ -15,7 +15,7 @@ return {
       require('mini.ai').setup { n_lines = 500 }
 
       -- Mini.surround for adding/deleting/replacing surroundings
-      require('mini.surround').setup()
+      require('mini.surround').setup({ n_lines = 500 })
 
       -- Mini.statusline for the status line
       local statusline = require 'mini.statusline'

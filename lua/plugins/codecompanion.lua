@@ -1,6 +1,10 @@
 return {
   {
     "olimorris/codecompanion.nvim",
+    config = true,
+    vim.keymap.set('n', '<leader>C', "<cmd>CodeCompanionActions<cr>", { desc = 'Code Companion Actions' }),
+    vim.keymap.set('v', '<c-c>', ":CodeCompanion", { desc = 'code companion actions' }),
+    vim.keymap.set('n', '<leader>c', "<cmd>CodeCompanionChat Toggle<cr>", { desc = 'code companion chat' }),
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
@@ -42,11 +46,5 @@ return {
         },
       },
     },
-    config = function()
-      vim.keymap.set('n', '<leader>C', "<cmd>CodeCompanionActions<cr>", { desc = 'Code Companion Actions' })
-      vim.keymap.set('v', '<C-c>', ":CodeCompanion", { desc = 'Code Companion Actions' })
-      vim.keymap.set('n', '<leader>c', "<cmd>CodeCompanionChat Toggle<cr>", { desc = 'Code Companion Chat' })
-    end,
   },
-
 }
