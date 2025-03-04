@@ -85,7 +85,22 @@ return {
         },
       }
     end,
-  }
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-context',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    config = function()
+      require('treesitter-context').setup {
+        enable = true,       -- Can also be toggled with :TSContextEnable, :TSContextDisable, :TSContextToggle commands
+        multiwindow = false, -- If true, shows context in all Neovim windows
+        max_lines = 5,
+        multiline_threshold = 1,
+        trim_scope = 'inner',
+        mode = 'cursor',
+        line_numbers = true,
+      }
+    end,
+  },
 
 
 }
