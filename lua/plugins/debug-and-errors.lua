@@ -186,5 +186,13 @@ return {
         },
       }
     end,
+    -- Disable Neovim's built-in virtual text diagnostics
+    vim.diagnostic.config({
+      virtual_text = false, -- Turn off built-in virtual text
+      signs = true,         -- Keep the signs in the gutter
+      underline = true,     -- Keep underlining issues
+      update_in_insert = false,
+      severity_sort = true,
+    })
   },
 }

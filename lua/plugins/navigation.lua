@@ -162,34 +162,34 @@ return {
 
 
 
-  -- {
-  --   "mikavilpas/yazi.nvim",
-  --   event = 'VeryLazy',
-  --   keys = {
-  --     -- Your keymappings here
-  --     {
-  --       '<leader>e',
-  --       '<cmd>Yazi<cr>',
-  --       desc = 'Open yazi at the current file',
-  --     },
-  --     {
-  --       '<leader>y',
-  --       '<cmd>Yazi toggle<cr>',
-  --       desc = 'Resume the last yazi session',
-  --     },
-  --     {
-  --       '<c-up>',
-  --       '<cmd>Yazi toggle<cr>',
-  --       desc = 'Resume the last yazi session',
-  --     },
-  --   },
-  --   opts = {
-  --     open_for_directories = true,
-  --     keymaps = false,
-  --     integrations = {
-  --       resolve_relative_path_application = 'realpath',
-  --     },
-  --     clipboard_register = 'unnamedplus',
-  --   },
-  -- },
+  {
+    "mikavilpas/yazi.nvim",
+    event = 'VeryLazy',
+    keys = {
+      -- Your keymappings here
+      {
+        '<leader>e',
+        '<cmd>Yazi<cr>',
+        desc = 'Open yazi at the current file',
+      },
+      {
+        '<leader>y',
+        '<cmd>Yazi toggle<cr>',
+        desc = 'Resume the last yazi session',
+      },
+      {
+        '<c-up>',
+        '<cmd>Yazi toggle<cr>',
+        desc = 'Resume the last yazi session',
+      },
+    },
+    opts = {
+      open_for_directories = true,
+      keymaps = false,
+      integrations = {
+        resolve_relative_path_application = 'realpath',
+      },
+      clipboard_register = 'unnamedplus',
+    },
+  },
 }

@@ -1,3 +1,3 @@
 return {
-  "ellisonleao/dotenv.nvim",
+
 }

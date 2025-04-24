@@ -2,6 +2,7 @@
 --  See `:help vim.keymap.set()`
 vim.keymap.set('i', '<C-BS>', '<C-w>', { desc = 'Delete word backward' })
 vim.keymap.set('i', '<C-h>', '<C-w>', { desc = 'Delete word backward' }) -- Terminal compatibility
+vim.keymap.set('i', '<C-h>', '<C-w>', { desc = 'Delete word backward' }) -- Terminal compatibility
 
 -- [[ Remapped keys ]]
 vim.keymap.set('n', 's', 'r', { noremap = true })
