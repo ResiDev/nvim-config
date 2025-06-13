@@ -58,15 +58,15 @@ return {
     },
     keys = {
       { '<leader>a', '<cmd>Grapple toggle<cr>',          desc = 'Tag a file' },
-      { '<c-e>',     '<cmd>Grapple toggle_tags<cr>',     desc = 'Toggle tags menu' },
+      { '<C-e>',     '<cmd>Grapple toggle_tags<cr>',     desc = 'Toggle tags menu' },
 
       { '<leader>1', '<cmd>Grapple select index=1<cr>',  desc = 'Select first tag' },
       { '<leader>2', '<cmd>Grapple select index=2<cr>',  desc = 'Select second tag' },
       { '<leader>3', '<cmd>Grapple select index=3<cr>',  desc = 'Select third tag' },
       { '<leader>4', '<cmd>Grapple select index=4<cr>',  desc = 'Select fourth tag' },
 
-      { '<c-j>',     '<cmd>Grapple cycle_tags next<cr>', desc = 'Go to next tag' },
-      { '<c-k>',     '<cmd>Grapple cycle_tags prev<cr>', desc = 'Go to previous tag' },
+      { '<C-l>',     '<cmd>Grapple cycle_tags next<cr>', desc = 'Go to next tag' },
+      { '<C-h>',     '<cmd>Grapple cycle_tags prev<cr>', desc = 'Go to previous tag' },
     },
   },
 

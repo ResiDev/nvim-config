@@ -82,7 +82,7 @@ vim.api.nvim_create_autocmd('FileType', {
       job_id = vim.bo.channel
       vim.cmd.wincmd 'J'
       vim.api.nvim_win_set_height(0, 15)
-      vim.fn.chansend(job_id, { 'npx tsx' .. file_path .. '\r\n' })
+      vim.fn.chansend(job_id, { 'npx tsx ' .. file_path .. '\r\n' })
     end, { buffer = true })
   end,
 })
@@ -93,13 +93,14 @@ vim.api.nvim_create_autocmd('FileType', {
   pattern = 'rust',
   callback = function()
     vim.keymap.set('n', '<leader><CR>', function()
-      local file_path = vim.api.nvim_buf_get_name(0)
+      -- Instead of the file path, just run 'cargo run'
+      -- This will run the default binary for the package you are currently in.
       vim.cmd.vnew()
       vim.cmd.terminal()
       job_id = vim.bo.channel
       vim.cmd.wincmd 'J'
       vim.api.nvim_win_set_height(0, 15)
-      vim.fn.chansend(job_id, { 'cargo run ' .. file_path .. '\r\n' })
+      vim.fn.chansend(job_id, { 'cargo run\r\n' })
     end, { buffer = true })
   end,
 })

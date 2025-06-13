@@ -6,8 +6,8 @@ vim.keymap.set('i', '<C-h>', '<C-w>', { desc = 'Delete word backward' }) -- Term
 
 -- [[ Remapped keys ]]
 vim.keymap.set('n', 's', 'r', { noremap = true })
-vim.keymap.set('n', '<C-u>', '<C-u>zz', { noremap = true })
-vim.keymap.set('n', '<C-d>', '<C-d>zz', { noremap = true })
+vim.keymap.set('n', '<C-k>', '<C-u>zz', { noremap = true })
+vim.keymap.set('n', '<C-j>', '<C-d>zz', { noremap = true })
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
