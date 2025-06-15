@@ -18,8 +18,6 @@ if vim.fn.has 'wsl' == 1 then
           local result = vim.fn.system('clip.exe', clipboard_content)
           if vim.v.shell_error ~= 0 then
             print('Failed to copy to Windows clipboard: ' .. result)
-          else
-            print('Copied to Windows clipboard: ' .. string.sub(clipboard_content, 1, 20) .. '...')
           end
         end
       end)
