@@ -7,22 +7,19 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 vim.opt.clipboard = 'unnamedplus'
-
 if vim.fn.has 'wsl' == 1 then
-  vim.api.nvim_create_autocmd('TextYankPost', {
-    group = vim.api.nvim_create_augroup('Yank', { clear = true }),
-    callback = function()
-      vim.schedule(function()
-        local clipboard_content = vim.fn.getreg '"'
-        if clipboard_content ~= '' then
-          local result = vim.fn.system('clip.exe', clipboard_content)
-          if vim.v.shell_error ~= 0 then
-            print('Failed to copy to Windows clipboard: ' .. result)
-          end
-        end
-      end)
-    end,
-  })
+  vim.g.clipboard = {
+    name = 'win32yank',
+    copy = {
+      ['+'] = 'win32yank.exe -i --crlf',
+      ['*'] = 'win32yank.exe -i --crlf',
+    },
+    paste = {
+      ['+'] = 'win32yank.exe -o --lf',
+      ['*'] = 'win32yank.exe -o --lf',
+    },
+    cache_enabled = true
+  }
 end
 
 -- For specific file types that commonly use 2 spaces
