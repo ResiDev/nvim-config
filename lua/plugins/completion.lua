@@ -55,19 +55,19 @@ return {
   --     })
   --   end,
   -- },
-  -- {
-  --   "supermaven-inc/supermaven-nvim",
-  --   config = function()
-  --     require("supermaven-nvim").setup({
-  --       keymaps = {
-  --         accept_suggestion = "<Tab>",
-  --         accept_word = "<M-n>"
-  --       }
-  --     })
-  --     vim.keymap.set('n', '<leader>sm', "<cmd>SupermavenToggle<cr>",
-  --       { desc = 'Supermaven Toggle' })
-  --   end,
-  -- },
+  {
+    "supermaven-inc/supermaven-nvim",
+    config = function()
+      require("supermaven-nvim").setup({
+        keymaps = {
+          accept_suggestion = "<Tab>",
+          accept_word = "<M-n>"
+        }
+      })
+      vim.keymap.set('n', '<leader>sm', "<cmd>SupermavenToggle<cr>",
+        { desc = 'Supermaven Toggle' })
+    end,
+  },
   {
     'saghen/blink.cmp',
     -- optional: provides snippets for the snippet source

@@ -19,7 +19,9 @@ return {
         handlers = {}, -- Use default handlers
       }
 
-      require('dap').configurations.python = {
+      dap = require('dap')
+
+      dap.configurations.python = {
         {
           type = 'python',
           request = 'launch',
@@ -33,6 +35,35 @@ return {
             -- Otherwise use system Python
             return vim.fn.exepath 'python3' or vim.fn.exepath 'python' or 'python'
           end,
+        },
+      }
+
+      dap.configurations.typescript = {
+        {
+          type = "pwa-node",
+          request = "launch",
+          name = "Launch file",
+          program = "${file}",
+          cwd = "${workspaceFolder}",
+        },
+        {
+          type = "pwa-node",
+          request = "attach",
+          name = "Attach to process ID",
+          cwd = "${workspaceFolder}",
+        },
+      }
+
+      dap.adapters = {
+        ["pwa-node"] = {
+          type = "server",
+          port = "${port}",
+          executable = {
+            command = "js-debug-adapter",
+            args = {
+              "${port}",
+            },
+          },
         },
       }
 
