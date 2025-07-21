@@ -8,9 +8,11 @@ return {
       'jay-babu/mason-nvim-dap.nvim',
       'theHamsta/nvim-dap-virtual-text',
       'nvim-treesitter/nvim-treesitter', -- Required for virtual text
+      'mxsdev/nvim-dap-vscode-js',
     },
     config = function()
       -- Basic dapui setup
+      local dap = require('dap')
       require('dapui').setup()
 
       -- Basic mason-nvim-dap setup
@@ -19,7 +21,44 @@ return {
         handlers = {}, -- Use default handlers
       }
 
-      dap = require('dap')
+      require('dap-vscode-js').setup()
+
+      for _, language in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
+        dap.configurations[language] = {
+          {
+            name = "Launch current file (tsx)",
+            type = "pwa-node",
+            request = "launch",
+            cwd = "${workspaceFolder}",
+            runtimeExecutable = "tsx",
+            args = { "${file}" },
+            sourceMap = true,
+            protocol = "inspector",
+            console = "integratedTerminal",
+            skipFiles = { "<node_internals>/**", "**/node_modules/**" },
+            sourceMapPathOverrides = {
+              ["@/*"] = "${workspaceFolder}/src/*",
+              ["webpack:/*"] = "${workspaceFolder}/*",
+            },
+          },
+          {
+            -- A simple config for plain JS files
+            name = "Launch current file (node)",
+            type = "pwa-node",
+            request = "launch",
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+          },
+          {
+            -- Your attach config is good
+            name = "Attach to node process",
+            type = "pwa-node",
+            request = "attach",
+            processId = require('dap.utils').pick_process,
+          },
+        }
+      end
+
 
       dap.configurations.python = {
         {
@@ -38,34 +77,7 @@ return {
         },
       }
 
-      dap.configurations.typescript = {
-        {
-          type = "pwa-node",
-          request = "launch",
-          name = "Launch file",
-          program = "${file}",
-          cwd = "${workspaceFolder}",
-        },
-        {
-          type = "pwa-node",
-          request = "attach",
-          name = "Attach to process ID",
-          cwd = "${workspaceFolder}",
-        },
-      }
 
-      dap.adapters = {
-        ["pwa-node"] = {
-          type = "server",
-          port = "${port}",
-          executable = {
-            command = "js-debug-adapter",
-            args = {
-              "${port}",
-            },
-          },
-        },
-      }
 
       -- NOTE: Haven't messed around with this much yet
       require('nvim-dap-virtual-text').setup {
