@@ -8,11 +8,9 @@ return {
       'jay-babu/mason-nvim-dap.nvim',
       'theHamsta/nvim-dap-virtual-text',
       'nvim-treesitter/nvim-treesitter', -- Required for virtual text
-      'mxsdev/nvim-dap-vscode-js',
     },
     config = function()
       -- Basic dapui setup
-      local dap = require('dap')
       require('dapui').setup()
 
       -- Basic mason-nvim-dap setup
@@ -21,44 +19,7 @@ return {
         handlers = {}, -- Use default handlers
       }
 
-      require('dap-vscode-js').setup()
-
-      for _, language in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
-        dap.configurations[language] = {
-          {
-            name = "Launch current file (tsx)",
-            type = "pwa-node",
-            request = "launch",
-            cwd = "${workspaceFolder}",
-            runtimeExecutable = "tsx",
-            args = { "${file}" },
-            sourceMap = true,
-            protocol = "inspector",
-            console = "integratedTerminal",
-            skipFiles = { "<node_internals>/**", "**/node_modules/**" },
-            sourceMapPathOverrides = {
-              ["@/*"] = "${workspaceFolder}/src/*",
-              ["webpack:/*"] = "${workspaceFolder}/*",
-            },
-          },
-          {
-            -- A simple config for plain JS files
-            name = "Launch current file (node)",
-            type = "pwa-node",
-            request = "launch",
-            program = "${file}",
-            cwd = "${workspaceFolder}",
-          },
-          {
-            -- Your attach config is good
-            name = "Attach to node process",
-            type = "pwa-node",
-            request = "attach",
-            processId = require('dap.utils').pick_process,
-          },
-        }
-      end
-
+      dap = require('dap')
 
       dap.configurations.python = {
         {
@@ -77,6 +38,189 @@ return {
         },
       }
 
+      for _, adapter in ipairs({ "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" }) do
+        dap.adapters[adapter] = {
+          type = "server",
+          host = "localhost",
+          port = "${port}",
+          executable = {
+            command = "node",
+            args = {
+              vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js",
+              "${port}",
+            },
+          },
+        }
+      end
+
+      -- Add fallback node adapter
+      dap.adapters.node = dap.adapters["pwa-node"]
+
+
+      -- Replace your TypeScript/JavaScript configurations with this enhanced version
+      for _, language in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
+        dap.configurations[language] = {
+          -- Strategy 1: tsx with better source mapping
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch file",
+            program = "${file}",
+            cwd = "${workspaceFolder}",
+            runtimeExecutable = "ts-node", -- If using ts-node
+            sourceMaps = true,
+            protocol = "inspector",        -- Helps with ESM
+          },
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch file with tsx (recommended for TS)",
+            cwd = "${workspaceFolder}",
+            runtimeExecutable = "tsx",
+            args = { "${file}" },
+            sourceMaps = true,
+            protocol = "inspector",
+            console = "integratedTerminal",
+            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            -- Key additions for better TypeScript support
+            resolveSourceMapLocations = {
+              "${workspaceFolder}/**",
+              "!**/node_modules/**",
+            },
+            -- This helps with source map resolution
+            outFiles = { "${workspaceFolder}/**/*.js" },
+            -- Enable source map step filtering
+            smartStep = true,
+            -- Restart on file changes (useful for TS development)
+            restart = true,
+          },
+
+          -- Strategy 2: ts-node with ESM loader and better config
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch with ts-node (ESM)",
+            cwd = "${workspaceFolder}",
+            runtimeExecutable = "node",
+            runtimeArgs = {
+              "--loader", "ts-node/esm",
+              "--experimental-specifier-resolution=node"
+            },
+            args = { "${file}" },
+            sourceMaps = true,
+            protocol = "inspector",
+            console = "integratedTerminal",
+            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            resolveSourceMapLocations = {
+              "${workspaceFolder}/**",
+              "!**/node_modules/**",
+            },
+            -- TypeScript specific environment
+            env = {
+              TS_NODE_PROJECT = "${workspaceFolder}/tsconfig.json",
+              TS_NODE_COMPILER_OPTIONS = '{"sourceMap": true, "inlineSourceMap": false}',
+            },
+            outFiles = { "${workspaceFolder}/**/*.js" },
+            smartStep = true,
+          },
+
+          -- Strategy 3: Pre-compile and debug (most reliable for complex projects)
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Build and Debug",
+            cwd = "${workspaceFolder}",
+            -- This assumes you have a build script that compiles TS to JS
+            preLaunchTask = "typescript: build",
+            program = "${workspaceFolder}/dist/${fileBasenameNoExtension}.js",
+            sourceMaps = true,
+            protocol = "inspector",
+            console = "integratedTerminal",
+            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            resolveSourceMapLocations = {
+              "${workspaceFolder}/**",
+              "!**/node_modules/**",
+            },
+            outFiles = { "${workspaceFolder}/dist/**/*.js" },
+            smartStep = true,
+          },
+
+          -- Strategy 4: Direct node debugging with transpile-only
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch with ts-node (transpile-only)",
+            cwd = "${workspaceFolder}",
+            runtimeExecutable = "node",
+            runtimeArgs = {
+              "-r", "ts-node/register",
+              "--enable-source-maps"
+            },
+            args = { "${file}" },
+            sourceMaps = true,
+            protocol = "inspector",
+            console = "integratedTerminal",
+            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            env = {
+              TS_NODE_TRANSPILE_ONLY = "true",
+              TS_NODE_COMPILER_OPTIONS = '{"sourceMap": true}',
+            },
+            resolveSourceMapLocations = {
+              "${workspaceFolder}/**",
+              "!**/node_modules/**",
+            },
+            smartStep = true,
+          },
+
+          -- Your existing configs (keep these for JS files)
+          {
+            type = "pwa-node",
+            request = "launch",
+            name = "Launch Current File (pwa-node)",
+            program = "${file}",
+            cwd = vim.fn.getcwd(),
+            args = {},
+            sourceMaps = true,
+            protocol = "inspector",
+            skipFiles = { "<node_internals>/**", "node_modules/**" },
+          },
+
+          {
+            type = "pwa-node",
+            request = "attach",
+            name = "Attach to node process",
+            processId = require('dap.utils').pick_process,
+            cwd = vim.fn.getcwd(),
+            sourceMaps = true,
+          },
+
+          -- Debug web applications (client side)
+          {
+            type = "pwa-chrome",
+            request = "launch",
+            name = "Launch Chrome & debug",
+            url = function()
+              local co = coroutine.running()
+              return coroutine.create(function()
+                vim.ui.input({
+                  prompt = "Enter URL: ",
+                  default = "http://localhost:3000",
+                }, function(url)
+                  if url == nil or url == "" then
+                    return
+                  else
+                    coroutine.resume(co, url)
+                  end
+                end)
+              end)
+            end,
+            webRoot = vim.fn.getcwd(),
+            protocol = "inspector",
+            sourceMaps = true,
+            userDataDir = false,
+          },
+        }
+      end
 
 
       -- NOTE: Haven't messed around with this much yet
