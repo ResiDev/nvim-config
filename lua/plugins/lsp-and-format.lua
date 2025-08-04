@@ -12,7 +12,6 @@ return {
   },
 
   { 'Bilal2453/luvit-meta', lazy = true },
-
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
@@ -136,6 +135,7 @@ return {
             },
           },
         },
+
       }
 
       require('mason').setup()
@@ -171,7 +171,10 @@ return {
           end,
         },
       }
+      require('lspconfig').gleam.setup({})
     end,
+
+
   },
   {
     'stevearc/conform.nvim',
@@ -208,6 +211,7 @@ return {
       typescript = { 'prettierd' },
       typescriptreact = { 'prettierd' },
       json = { 'prettierd' },
+      gleam = { 'gleam' },
     },
   },
 }

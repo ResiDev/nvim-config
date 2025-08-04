@@ -104,6 +104,8 @@ vim.api.nvim_create_autocmd('FileType', {
   pattern = 'rust',
   callback = function()
     vim.keymap.set('n', '<leader><CR>', function()
+      local file_path = vim.api.nvim_buf_get_name(0)
+      local dir = vim.fn.fnamemodify(file_path, ":p:h")
       -- Instead of the file path, just run 'cargo run'
       -- This will run the default binary for the package you are currently in.
       vim.cmd.vnew()
@@ -111,11 +113,33 @@ vim.api.nvim_create_autocmd('FileType', {
       job_id = vim.bo.channel
       vim.cmd.wincmd 'J'
       vim.api.nvim_win_set_height(0, 15)
+
+      vim.fn.chansend(job_id, { "cd " .. vim.fn.shellescape(dir) .. "\r\n" })
       vim.fn.chansend(job_id, { 'cargo run\r\n' })
     end, { buffer = true })
   end,
 })
 
+-- Gleam
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "gleam",
+  callback = function()
+    vim.keymap.set("n", "<leader><CR>", function()
+      local file_path = vim.api.nvim_buf_get_name(0)
+      local dir = vim.fn.fnamemodify(file_path, ":p:h")
+
+      vim.cmd.vnew()
+      vim.cmd.terminal()
+      local job_id = vim.bo.channel
+      vim.cmd.wincmd("J")
+      vim.api.nvim_win_set_height(0, 15)
+
+      -- cd into the file's directory, then run gleam
+      vim.fn.chansend(job_id, { "cd " .. vim.fn.shellescape(dir) .. "\r\n" })
+      vim.fn.chansend(job_id, { "gleam run\r\n" })
+    end, { buffer = true })
+  end,
+})
 
 vim.api.nvim_create_autocmd("ColorScheme", {
   pattern = "*",
