@@ -23,9 +23,9 @@ return {
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim',       opts = {} },
+      { 'j-hui/fidget.nvim', opts = {} },
       -- Allows extra capabilities provided by nvim-cmp
-      'saghen/blink.cmp'
+      'saghen/blink.cmp',
       -- 'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
@@ -135,13 +135,14 @@ return {
             },
           },
         },
-
       }
 
       require('mason').setup()
 
       -- Basedpyright, only way I found to get it to work
-      require('lspconfig').basedpyright.setup({
+      vim.lsp.config.gleam = {}
+      vim.lsp.enable 'gleam'
+      vim.lsp.config.basedpyright = {
         capabilities = capabilities,
         settings = {
           basedpyright = {
@@ -150,15 +151,8 @@ return {
             },
           },
         },
-      })
-
-
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, {
-        'stylua', -- Used to format Lua code
-      })
-      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
-
+      }
+      vim.lsp.enable 'basedpyright'
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
@@ -167,14 +161,28 @@ return {
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
+            vim.lsp.config[server_name] = server
+            vim.lsp.enable(server_name)
           end,
         },
       }
-      require('lspconfig').gleam.setup({})
+      -- require('lspconfig').basedpyright.setup {
+      --   capabilities = capabilities,
+      --   settings = {
+      --     basedpyright = {
+      --       analysis = {
+      --         typeCheckingMode = 'standard',
+      --       },
+      --     },
+      --   },
+      -- }
+
+      local ensure_installed = vim.tbl_keys(servers or {})
+      vim.list_extend(ensure_installed, {
+        'stylua', -- Used to format Lua code
+      })
+      require('mason-tool-installer').setup { ensure_installed = ensure_installed }
     end,
-
-
   },
   {
     'stevearc/conform.nvim',
