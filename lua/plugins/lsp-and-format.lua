@@ -213,13 +213,15 @@ return {
           lsp_format = lsp_format_opt,
         }
       end,
-      astro = { 'prettier' },
-      javascript = { 'prettierd' },
-      javascriptreact = { 'prettierd' },
-      typescript = { 'prettierd' },
-      typescriptreact = { 'prettierd' },
-      json = { 'prettierd' },
-      gleam = { 'gleam' },
+      formatters_by_ft = { -- This key was missing!
+        astro = { 'prettierd' },
+        javascript = { 'prettierd' },
+        javascriptreact = { 'prettierd' },
+        typescript = { 'prettierd' },
+        typescriptreact = { 'prettierd' },
+        json = { 'prettierd' },
+        gleam = { 'gleam' },
+      },
     },
   },
   {
