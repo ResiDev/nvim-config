@@ -24,7 +24,8 @@ end
 
 -- For specific file types that commonly use 2 spaces
 vim.api.nvim_create_autocmd('FileType', {
-  pattern = { 'lua', 'yaml', 'html', 'css' },
+  pattern = { 'lua', 'yaml', 'html', 'css', 'javascript', 'typescript', 'json', 'typescriptreact', 'javascriptreact' },
+
   callback = function()
     vim.bo.shiftwidth = 2
     vim.bo.tabstop = 2
@@ -137,6 +138,27 @@ vim.api.nvim_create_autocmd("FileType", {
       -- cd into the file's directory, then run gleam
       vim.fn.chansend(job_id, { "cd " .. vim.fn.shellescape(dir) .. "\r\n" })
       vim.fn.chansend(job_id, { "gleam run\r\n" })
+    end, { buffer = true })
+  end,
+})
+
+-- Mojo
+vim.api.nvim_create_autocmd("BufRead", {
+  pattern = "*.mojo",
+  callback = function()
+    vim.keymap.set("n", "<leader><CR>", function()
+      local file_path = vim.api.nvim_buf_get_name(0)
+      local dir = vim.fn.fnamemodify(file_path, ":p:h")
+
+      vim.cmd.vnew()
+      vim.cmd.terminal()
+      local job_id = vim.bo.channel
+      vim.cmd.wincmd("J")
+      vim.api.nvim_win_set_height(0, 15)
+
+      -- cd into the file's directory, then run mojo
+      vim.fn.chansend(job_id, { "cd " .. vim.fn.shellescape(dir) .. "\r\n" })
+      vim.fn.chansend(job_id, { "uv run mojo " .. file_path .. "\r\n" })
     end, { buffer = true })
   end,
 })

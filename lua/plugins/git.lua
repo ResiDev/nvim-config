@@ -1,5 +1,24 @@
 -- ~/.config/nvim/lua/plugins/git.lua
 return {
+  {
+    'sindrets/diffview.nvim',
+    cmd = { 'DiffviewOpen', 'DiffviewClose', 'DiffviewFileHistory' },
+    keys = {
+      { '<leader>gv', '<cmd>DiffviewOpen<cr>',          desc = 'Open diff view' },
+      { '<leader>gV', '<cmd>DiffviewClose<cr>',         desc = 'Close diff view' },
+      { '<leader>gh', '<cmd>DiffviewFileHistory %<cr>', desc = 'File history' },
+    },
+    config = function()
+      require('diffview').setup({
+        enhanced_diff_hl = true, -- Better inline highlighting
+        view = {
+          default = {
+            layout = 'diff2_horizontal',
+          },
+        },
+      })
+    end,
+  },
   { 'akinsho/git-conflict.nvim', version = '*', config = true },
   {
     "kdheepak/lazygit.nvim",
@@ -32,6 +51,7 @@ return {
         delete = { text = '_' },
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
+        word_diff = true
       },
       on_attach = function(bufnr)
         local gs = require 'gitsigns'
