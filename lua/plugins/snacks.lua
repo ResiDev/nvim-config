@@ -13,7 +13,7 @@ return {
           git = {
             paging = {
               colorArg = 'always',
-              pager = 'delta --dark --paging=never --minus-style="syntax #5d2a2a" --minus-emph-style="syntax #8d4545" --plus-style="syntax #2a5d2a" --plus-emph-style="syntax #458d45"',
+              pager = 'delta --dark --paging=never --minus-style="syntax #452020" --minus-emph-style="syntax #5d2828" --plus-style="syntax #204520" --plus-emph-style="syntax #285d28"',
             },
           },
         },
