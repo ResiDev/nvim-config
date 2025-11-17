@@ -21,23 +21,6 @@ return {
       notifier = { enabled = true },
       quickfile = { enabled = true },
       dashboard = { enabled = true },
-      scratch = {
-        enabled = true,
-        win_by_ft = {
-          python = {
-            keys = {
-              ['source'] = {
-                '<leader>r',
-                function(self)
-                  vim.cmd 'write !python3'
-                end,
-                desc = 'Run Python buffer',
-                mode = { 'n', 'x' },
-              },
-            },
-          },
-        },
-      },
       picker = {
         sources = {
           explorer = {
@@ -340,13 +323,13 @@ return {
         end,
         desc = 'Man Pages',
       },
-      {
-        '<leader>sp',
-        function()
-          Snacks.picker.lazy()
-        end,
-        desc = 'Search for Plugin Spec',
-      },
+      -- {
+      --   '<leader>sp',
+      --   function()
+      --     Snacks.picker.lazy()
+      --   end,
+      --   desc = 'Search for Plugin Spec',
+      -- },
       {
         '<leader>sq',
         function()
@@ -411,20 +394,6 @@ return {
           Snacks.picker.lsp_type_definitions()
         end,
         desc = 'Goto T[y]pe Definition',
-      },
-      {
-        '<leader>ss',
-        function()
-          Snacks.picker.lsp_symbols()
-        end,
-        desc = 'LSP Symbols',
-      },
-      {
-        '<leader>sS',
-        function()
-          Snacks.picker.lsp_workspace_symbols()
-        end,
-        desc = 'LSP Workspace Symbols',
       },
     },
   },
