@@ -55,19 +55,19 @@ return {
   --     })
   --   end,
   -- },
-  {
-    "supermaven-inc/supermaven-nvim",
-    config = function()
-      require("supermaven-nvim").setup({
-        keymaps = {
-          accept_suggestion = "<Tab>",
-          accept_word = "<M-n>"
-        }
-      })
-      vim.keymap.set('n', '<leader>sm', "<cmd>SupermavenToggle<cr>",
-        { desc = 'Supermaven Toggle' })
-    end,
-  },
+  -- {
+  --   "supermaven-inc/supermaven-nvim",
+  --   config = function()
+  --     require("supermaven-nvim").setup({
+  --       keymaps = {
+  --         accept_suggestion = "<Tab>",
+  --         accept_word = "<M-n>"
+  --       }
+  --     })
+  --     vim.keymap.set('n', '<leader>sm', "<cmd>SupermavenToggle<cr>",
+  --       { desc = 'Supermaven Toggle' })
+  --   end,
+  -- },
   {
     'saghen/blink.cmp',
     -- optional: provides snippets for the snippet source
@@ -100,7 +100,7 @@ return {
       appearance = {
         -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
         -- Adjusts spacing to ensure icons are aligned
-        nerd_font_variant = 'mono'
+        nerd_font_variant = 'mono',
       },
 
       -- (Default) Only show the documentation popup when manually triggered
@@ -112,13 +112,12 @@ return {
         default = { 'lsp', 'buffer', 'snippets', 'path' },
 
         per_filetype = {
-          sql = { 'dadbod' }
+          sql = { 'dadbod' },
         },
         providers = {
-          dadbod = { module = "vim_dadbod_completion.blink" },
-        }
+          dadbod = { module = 'vim_dadbod_completion.blink' },
+        },
       },
-
 
       signature = { enabled = true },
       -- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
@@ -127,15 +126,15 @@ return {
       --
       -- See the fuzzy documentation for more information
       fuzzy = {
-        implementation = "prefer_rust_with_warning",
-      }
+        implementation = 'prefer_rust_with_warning',
+      },
     },
-    opts_extend = { "sources.default" }
+    opts_extend = { 'sources.default' },
   },
 
   {
     'windwp/nvim-autopairs',
-    event = "InsertEnter",
-    config = true
+    event = 'InsertEnter',
+    config = true,
   },
 }
