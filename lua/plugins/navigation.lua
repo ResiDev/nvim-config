@@ -7,13 +7,13 @@ return {
       modes = {
         char = {
           enabled = false,
-          jump_labels = false
-        }
+          jump_labels = false,
+        },
       },
     },
     init = function()
-      vim.api.nvim_create_autocmd("ColorScheme", {
-        pattern = "*",
+      vim.api.nvim_create_autocmd('ColorScheme', {
+        pattern = '*',
         callback = function()
           vim.api.nvim_set_hl(0, 'FlashLabel', { bg = '#FF0000', fg = '#000000', bold = true })
         end,
@@ -57,16 +57,16 @@ return {
       storage = 'json',
     },
     keys = {
-      { '<leader>a', '<cmd>Grapple toggle<cr>',          desc = 'Tag a file' },
-      { '<C-e>',     '<cmd>Grapple toggle_tags<cr>',     desc = 'Toggle tags menu' },
+      { '<leader>a', '<cmd>Grapple toggle<cr>', desc = 'Tag a file' },
+      { '<C-e>', '<cmd>Grapple toggle_tags<cr>', desc = 'Toggle tags menu' },
 
-      { '<leader>1', '<cmd>Grapple select index=1<cr>',  desc = 'Select first tag' },
-      { '<leader>2', '<cmd>Grapple select index=2<cr>',  desc = 'Select second tag' },
-      { '<leader>3', '<cmd>Grapple select index=3<cr>',  desc = 'Select third tag' },
-      { '<leader>4', '<cmd>Grapple select index=4<cr>',  desc = 'Select fourth tag' },
+      { '<leader>1', '<cmd>Grapple select index=1<cr>', desc = 'Select first tag' },
+      { '<leader>2', '<cmd>Grapple select index=2<cr>', desc = 'Select second tag' },
+      { '<leader>3', '<cmd>Grapple select index=3<cr>', desc = 'Select third tag' },
+      { '<leader>4', '<cmd>Grapple select index=4<cr>', desc = 'Select fourth tag' },
 
-      { '<C-l>',     '<cmd>Grapple cycle_tags next<cr>', desc = 'Go to next tag' },
-      { '<C-h>',     '<cmd>Grapple cycle_tags prev<cr>', desc = 'Go to previous tag' },
+      { '<C-l>', '<cmd>Grapple cycle_tags next<cr>', desc = 'Go to next tag' },
+      { '<C-h>', '<cmd>Grapple cycle_tags prev<cr>', desc = 'Go to previous tag' },
     },
   },
 
@@ -160,10 +160,8 @@ return {
     end,
   },
 
-
-
   {
-    "mikavilpas/yazi.nvim",
+    'mikavilpas/yazi.nvim',
     event = 'VeryLazy',
     keys = {
       -- Your keymappings here
@@ -191,5 +189,23 @@ return {
       },
       clipboard_register = 'unnamedplus',
     },
+  },
+  {
+    'bassamsdata/namu.nvim',
+    opts = {
+      global = {},
+      namu_symbols = { -- Specific Module options
+        options = {},
+      },
+    },
+    -- === Suggested Keymaps: ===
+    vim.keymap.set('n', '<leader>ss', ':Namu symbols<cr>', {
+      desc = 'Jump to LSP symbol',
+      silent = true,
+    }),
+    vim.keymap.set('n', '<leader>sp', ':Namu workspace<cr>', {
+      desc = 'LSP Symbols - Project',
+      silent = true,
+    }),
   },
 }
