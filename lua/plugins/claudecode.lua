@@ -5,7 +5,7 @@ return {
     config = function()
       require('dotenv').setup()
 
-      vim.cmd('Dotenv ' .. vim.fn.stdpath 'config' .. '/apikeys.env')
+      vim.cmd('Dotenv ' .. vim.fn.stdpath 'config' .. '/.env')
     end,
   },
   {
