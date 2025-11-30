@@ -17,7 +17,7 @@ vim.keymap.set('n', '<Esc>', ':noh', { noremap = true })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Exit terminal mode
-vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+vim.keymap.set('t', '<C-q>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 vim.keymap.set('n', 'gh', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', 'gl', '<C-w><C-l>', { desc = 'Move focus to the right window' })
