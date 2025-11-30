@@ -23,9 +23,9 @@ return {
 
       -- Useful status updates for LSP.
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim',       opts = {} },
+      { 'j-hui/fidget.nvim', opts = {} },
       -- Allows extra capabilities provided by nvim-cmp
-      'saghen/blink.cmp'
+      'saghen/blink.cmp',
       -- 'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
@@ -135,13 +135,12 @@ return {
             },
           },
         },
-
       }
 
       require('mason').setup()
 
       -- Basedpyright, only way I found to get it to work
-      require('lspconfig').basedpyright.setup({
+      require('lspconfig').basedpyright.setup {
         capabilities = capabilities,
         settings = {
           basedpyright = {
@@ -150,12 +149,12 @@ return {
             },
           },
         },
-      })
+      }
 
-      require('lspconfig').mojo.setup({
+      require('lspconfig').mojo.setup {
         capabilities = capabilities,
-        cmd = { "uv", "run", vim.fn.getcwd() .. "/.venv/bin/mojo-lsp-server" },
-      })
+        cmd = { 'uv', 'run', vim.fn.getcwd() .. '/.venv/bin/mojo-lsp-server' },
+      }
 
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
@@ -175,10 +174,8 @@ return {
           end,
         },
       }
-      require('lspconfig').gleam.setup({})
+      require('lspconfig').gleam.setup {}
     end,
-
-
   },
   {
     'stevearc/conform.nvim',
