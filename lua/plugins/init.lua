@@ -21,7 +21,7 @@ require('lazy').setup({
     { import = 'plugins.treesitter' },
     { import = 'plugins.completion' },
     { import = 'plugins.git' },
-    { import = 'plugins.codecompanion' },
+    { import = 'plugins.claudecode' },
     { import = 'plugins.debug-and-errors' },
     { import = 'plugins.snacks' },
     { import = 'plugins.dadbod' },

@@ -26,6 +26,19 @@ return {
       statusline.section_location = function()
         return '%2l:%-2v'
       end
+
+      -- Add arrow bookmark indicator to statusline
+      ---@diagnostic disable-next-line: duplicate-set-field
+      statusline.section_filename = function()
+        local arrow_statusline = require('arrow.statusline')
+        local arrow_status = arrow_statusline.text_for_statusline_with_icons()
+
+        if arrow_status ~= '' then
+          return arrow_status .. ' ' .. vim.fn.expand('%:t')
+        else
+          return vim.fn.expand('%:t')
+        end
+      end
     end,
   },
   {
