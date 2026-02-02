@@ -8,6 +8,7 @@ vim.g.have_nerd_font = true
 
 require 'core.options'
 require 'core.keymaps'
+require 'core.clipboard-context'
 require 'core.autocmds'
 require 'plugins'
 
