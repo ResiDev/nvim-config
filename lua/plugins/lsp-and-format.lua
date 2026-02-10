@@ -161,6 +161,7 @@ return {
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'prettierd', -- Used to format JS/TS/JSON/Astro via conform
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -189,7 +190,7 @@ return {
       {
         '<leader>f',
         function()
-          require('conform').format { async = true, lsp_format = 'fallback' }
+          require('conform').format { async = true, lsp_format = 'never' }
         end,
         mode = '',
         desc = '[F]ormat buffer',
@@ -198,19 +199,13 @@ return {
     opts = {
       notify_on_error = true,
       format_on_save = function(bufnr)
-        local disable_filetypes = { c = true, cpp = true }
-        local lsp_format_opt
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          lsp_format_opt = 'never'
-        else
-          lsp_format_opt = 'fallback'
-        end
+        local lsp_fallback = { c = true, cpp = true }
         return {
-          timeout_ms = 500,
-          lsp_format = lsp_format_opt,
+          timeout_ms = 1000,
+          lsp_format = lsp_fallback[vim.bo[bufnr].filetype] and 'fallback' or 'never',
         }
       end,
-      formatters_by_ft = { -- This key was missing!
+      formatters_by_ft = {
         astro = { 'prettierd' },
         javascript = { 'prettierd' },
         javascriptreact = { 'prettierd' },
