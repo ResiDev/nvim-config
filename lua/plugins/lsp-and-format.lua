@@ -139,8 +139,8 @@ return {
 
       require('mason').setup()
 
-      -- Basedpyright, only way I found to get it to work
-      require('lspconfig').basedpyright.setup {
+      -- Basedpyright
+      vim.lsp.config.basedpyright = {
         capabilities = capabilities,
         settings = {
           basedpyright = {
@@ -150,11 +150,13 @@ return {
           },
         },
       }
+      vim.lsp.enable('basedpyright')
 
-      require('lspconfig').mojo.setup {
+      vim.lsp.config.mojo = {
         capabilities = capabilities,
         cmd = { 'uv', 'run', vim.fn.getcwd() .. '/.venv/bin/mojo-lsp-server' },
       }
+      vim.lsp.enable('mojo')
 
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
@@ -175,7 +177,8 @@ return {
           end,
         },
       }
-      require('lspconfig').gleam.setup {}
+      vim.lsp.config.gleam = {}
+      vim.lsp.enable('gleam')
     end,
   },
   {
