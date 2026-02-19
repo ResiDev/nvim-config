@@ -15,11 +15,11 @@ return {
 
       -- Basic mason-nvim-dap setup
       require('mason-nvim-dap').setup {
-        ensure_installed = { 'python' },
+        ensure_installed = {},
         handlers = {}, -- Use default handlers
       }
 
-      dap = require('dap')
+      dap = require 'dap'
 
       dap.configurations.python = {
         {
@@ -38,57 +38,56 @@ return {
         },
       }
 
-      for _, adapter in ipairs({ "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" }) do
+      for _, adapter in ipairs { 'pwa-node', 'pwa-chrome', 'pwa-msedge', 'node-terminal', 'pwa-extensionHost' } do
         dap.adapters[adapter] = {
-          type = "server",
-          host = "localhost",
-          port = "${port}",
+          type = 'server',
+          host = 'localhost',
+          port = '${port}',
           executable = {
-            command = "node",
+            command = 'node',
             args = {
-              vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js",
-              "${port}",
+              vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js',
+              '${port}',
             },
           },
         }
       end
 
       -- Add fallback node adapter
-      dap.adapters.node = dap.adapters["pwa-node"]
-
+      dap.adapters.node = dap.adapters['pwa-node']
 
       -- Replace your TypeScript/JavaScript configurations with this enhanced version
-      for _, language in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
+      for _, language in ipairs { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' } do
         dap.configurations[language] = {
           -- Strategy 1: tsx with better source mapping
           {
-            type = "pwa-node",
-            request = "launch",
-            name = "Launch file",
-            program = "${file}",
-            cwd = "${workspaceFolder}",
-            runtimeExecutable = "ts-node", -- If using ts-node
+            type = 'pwa-node',
+            request = 'launch',
+            name = 'Launch file',
+            program = '${file}',
+            cwd = '${workspaceFolder}',
+            runtimeExecutable = 'ts-node', -- If using ts-node
             sourceMaps = true,
-            protocol = "inspector",        -- Helps with ESM
+            protocol = 'inspector', -- Helps with ESM
           },
           {
-            type = "pwa-node",
-            request = "launch",
-            name = "Launch file with tsx (recommended for TS)",
-            cwd = "${workspaceFolder}",
-            runtimeExecutable = "tsx",
-            args = { "${file}" },
+            type = 'pwa-node',
+            request = 'launch',
+            name = 'Launch file with tsx (recommended for TS)',
+            cwd = '${workspaceFolder}',
+            runtimeExecutable = 'tsx',
+            args = { '${file}' },
             sourceMaps = true,
-            protocol = "inspector",
-            console = "integratedTerminal",
-            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            protocol = 'inspector',
+            console = 'integratedTerminal',
+            skipFiles = { '<node_internals>/**', 'node_modules/**' },
             -- Key additions for better TypeScript support
             resolveSourceMapLocations = {
-              "${workspaceFolder}/**",
-              "!**/node_modules/**",
+              '${workspaceFolder}/**',
+              '!**/node_modules/**',
             },
             -- This helps with source map resolution
-            outFiles = { "${workspaceFolder}/**/*.js" },
+            outFiles = { '${workspaceFolder}/**/*.js' },
             -- Enable source map step filtering
             smartStep = true,
             -- Restart on file changes (useful for TS development)
@@ -97,98 +96,100 @@ return {
 
           -- Strategy 2: ts-node with ESM loader and better config
           {
-            type = "pwa-node",
-            request = "launch",
-            name = "Launch with ts-node (ESM)",
-            cwd = "${workspaceFolder}",
-            runtimeExecutable = "node",
+            type = 'pwa-node',
+            request = 'launch',
+            name = 'Launch with ts-node (ESM)',
+            cwd = '${workspaceFolder}',
+            runtimeExecutable = 'node',
             runtimeArgs = {
-              "--loader", "ts-node/esm",
-              "--experimental-specifier-resolution=node"
+              '--loader',
+              'ts-node/esm',
+              '--experimental-specifier-resolution=node',
             },
-            args = { "${file}" },
+            args = { '${file}' },
             sourceMaps = true,
-            protocol = "inspector",
-            console = "integratedTerminal",
-            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            protocol = 'inspector',
+            console = 'integratedTerminal',
+            skipFiles = { '<node_internals>/**', 'node_modules/**' },
             resolveSourceMapLocations = {
-              "${workspaceFolder}/**",
-              "!**/node_modules/**",
+              '${workspaceFolder}/**',
+              '!**/node_modules/**',
             },
             -- TypeScript specific environment
             env = {
-              TS_NODE_PROJECT = "${workspaceFolder}/tsconfig.json",
+              TS_NODE_PROJECT = '${workspaceFolder}/tsconfig.json',
               TS_NODE_COMPILER_OPTIONS = '{"sourceMap": true, "inlineSourceMap": false}',
             },
-            outFiles = { "${workspaceFolder}/**/*.js" },
+            outFiles = { '${workspaceFolder}/**/*.js' },
             smartStep = true,
           },
 
           -- Strategy 3: Pre-compile and debug (most reliable for complex projects)
           {
-            type = "pwa-node",
-            request = "launch",
-            name = "Build and Debug",
-            cwd = "${workspaceFolder}",
+            type = 'pwa-node',
+            request = 'launch',
+            name = 'Build and Debug',
+            cwd = '${workspaceFolder}',
             -- This assumes you have a build script that compiles TS to JS
-            preLaunchTask = "typescript: build",
-            program = "${workspaceFolder}/dist/${fileBasenameNoExtension}.js",
+            preLaunchTask = 'typescript: build',
+            program = '${workspaceFolder}/dist/${fileBasenameNoExtension}.js',
             sourceMaps = true,
-            protocol = "inspector",
-            console = "integratedTerminal",
-            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            protocol = 'inspector',
+            console = 'integratedTerminal',
+            skipFiles = { '<node_internals>/**', 'node_modules/**' },
             resolveSourceMapLocations = {
-              "${workspaceFolder}/**",
-              "!**/node_modules/**",
+              '${workspaceFolder}/**',
+              '!**/node_modules/**',
             },
-            outFiles = { "${workspaceFolder}/dist/**/*.js" },
+            outFiles = { '${workspaceFolder}/dist/**/*.js' },
             smartStep = true,
           },
 
           -- Strategy 4: Direct node debugging with transpile-only
           {
-            type = "pwa-node",
-            request = "launch",
-            name = "Launch with ts-node (transpile-only)",
-            cwd = "${workspaceFolder}",
-            runtimeExecutable = "node",
+            type = 'pwa-node',
+            request = 'launch',
+            name = 'Launch with ts-node (transpile-only)',
+            cwd = '${workspaceFolder}',
+            runtimeExecutable = 'node',
             runtimeArgs = {
-              "-r", "ts-node/register",
-              "--enable-source-maps"
+              '-r',
+              'ts-node/register',
+              '--enable-source-maps',
             },
-            args = { "${file}" },
+            args = { '${file}' },
             sourceMaps = true,
-            protocol = "inspector",
-            console = "integratedTerminal",
-            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            protocol = 'inspector',
+            console = 'integratedTerminal',
+            skipFiles = { '<node_internals>/**', 'node_modules/**' },
             env = {
-              TS_NODE_TRANSPILE_ONLY = "true",
+              TS_NODE_TRANSPILE_ONLY = 'true',
               TS_NODE_COMPILER_OPTIONS = '{"sourceMap": true}',
             },
             resolveSourceMapLocations = {
-              "${workspaceFolder}/**",
-              "!**/node_modules/**",
+              '${workspaceFolder}/**',
+              '!**/node_modules/**',
             },
             smartStep = true,
           },
 
           -- Your existing configs (keep these for JS files)
           {
-            type = "pwa-node",
-            request = "launch",
-            name = "Launch Current File (pwa-node)",
-            program = "${file}",
+            type = 'pwa-node',
+            request = 'launch',
+            name = 'Launch Current File (pwa-node)',
+            program = '${file}',
             cwd = vim.fn.getcwd(),
             args = {},
             sourceMaps = true,
-            protocol = "inspector",
-            skipFiles = { "<node_internals>/**", "node_modules/**" },
+            protocol = 'inspector',
+            skipFiles = { '<node_internals>/**', 'node_modules/**' },
           },
 
           {
-            type = "pwa-node",
-            request = "attach",
-            name = "Attach to node process",
+            type = 'pwa-node',
+            request = 'attach',
+            name = 'Attach to node process',
             processId = require('dap.utils').pick_process,
             cwd = vim.fn.getcwd(),
             sourceMaps = true,
@@ -196,17 +197,17 @@ return {
 
           -- Debug web applications (client side)
           {
-            type = "pwa-chrome",
-            request = "launch",
-            name = "Launch Chrome & debug",
+            type = 'pwa-chrome',
+            request = 'launch',
+            name = 'Launch Chrome & debug',
             url = function()
               local co = coroutine.running()
               return coroutine.create(function()
                 vim.ui.input({
-                  prompt = "Enter URL: ",
-                  default = "http://localhost:3000",
+                  prompt = 'Enter URL: ',
+                  default = 'http://localhost:3000',
                 }, function(url)
-                  if url == nil or url == "" then
+                  if url == nil or url == '' then
                     return
                   else
                     coroutine.resume(co, url)
@@ -215,25 +216,24 @@ return {
               end)
             end,
             webRoot = vim.fn.getcwd(),
-            protocol = "inspector",
+            protocol = 'inspector',
             sourceMaps = true,
             userDataDir = false,
           },
         }
       end
 
-
       -- NOTE: Haven't messed around with this much yet
       require('nvim-dap-virtual-text').setup {
-        enabled = true,                     -- enable this plugin (the default)
-        enabled_commands = true,            -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
+        enabled = true, -- enable this plugin (the default)
+        enabled_commands = true, -- create commands DapVirtualTextEnable, DapVirtualTextDisable, DapVirtualTextToggle, (DapVirtualTextForceRefresh for refreshing when debug adapter did not notify its termination)
         highlight_changed_variables = true, -- highlight changed values with NvimDapVirtualTextChanged, else always NvimDapVirtualText
-        highlight_new_as_changed = false,   -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
-        show_stop_reason = true,            -- show stop reason when stopped for exceptions
-        commented = false,                  -- prefix virtual text with comment string
-        only_first_definition = true,       -- only show virtual text at first definition (if there are multiple)
-        all_references = false,             -- show virtual text on all all references of the variable (not only definitions)
-        clear_on_continue = false,          -- clear virtual text on "continue" (might cause flickering when stepping)
+        highlight_new_as_changed = false, -- highlight new variables in the same way as changed variables (if highlight_changed_variables)
+        show_stop_reason = true, -- show stop reason when stopped for exceptions
+        commented = false, -- prefix virtual text with comment string
+        only_first_definition = true, -- only show virtual text at first definition (if there are multiple)
+        all_references = false, -- show virtual text on all all references of the variable (not only definitions)
+        clear_on_continue = false, -- clear virtual text on "continue" (might cause flickering when stepping)
         --- A callback that determines how a variable is displayed or whether it should be omitted
         --- @param variable Variable https://microsoft.github.io/debug-adapter-protocol/specification#Types_Variable
         --- @param buf number
@@ -253,8 +253,8 @@ return {
         virt_text_pos = vim.fn.has 'nvim-0.10' == 1 and 'inline' or 'eol',
 
         -- experimental features:
-        all_frames = false,      -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
-        virt_lines = false,      -- show virtual lines instead of virtual text (will flicker!)
+        all_frames = false, -- show virtual text for all stack frames not only current. Only works for debugpy on my machine.
+        virt_lines = false, -- show virtual lines instead of virtual text (will flicker!)
         virt_text_win_col = nil, -- position the virtual text at a fixed window column (starting from the first text column) ,
         -- e.g. 80 to position at column 80, see `:h nvim_buf_set_extmark()`
       }
@@ -339,7 +339,7 @@ return {
   {
     'rachartier/tiny-inline-diagnostic.nvim',
     event = 'VeryLazy', -- Or `LspAttach`
-    priority = 1000,    -- needs to be loaded in first
+    priority = 1000, -- needs to be loaded in first
     config = function()
       require('tiny-inline-diagnostic').setup {
         preset = 'modern',
@@ -374,13 +374,12 @@ return {
       }
     end,
     -- Disable Neovim's built-in virtual text diagnostics
-    vim.diagnostic.config({
+    vim.diagnostic.config {
       virtual_text = false, -- Turn off built-in virtual text
-      signs = true,         -- Keep the signs in the gutter
-      underline = true,     -- Keep underlining issues
+      signs = true, -- Keep the signs in the gutter
+      underline = true, -- Keep underlining issues
       update_in_insert = false,
       severity_sort = true,
-    })
+    },
   },
-
 }
