@@ -137,20 +137,10 @@ return {
         },
       }
 
-      require('mason').setup()
+      -- Increase Node heap limit for LSP servers that OOM on large projects
+      vim.env.NODE_OPTIONS = '--max-old-space-size=4096'
 
-      -- Basedpyright
-      vim.lsp.config.basedpyright = {
-        capabilities = capabilities,
-        settings = {
-          basedpyright = {
-            analysis = {
-              typeCheckingMode = 'standard',
-            },
-          },
-        },
-      }
-      vim.lsp.enable('basedpyright')
+      require('mason').setup()
 
       vim.lsp.config.mojo = {
         capabilities = capabilities,
@@ -177,8 +167,6 @@ return {
           end,
         },
       }
-      vim.lsp.config.gleam = {}
-      vim.lsp.enable('gleam')
     end,
   },
   {
