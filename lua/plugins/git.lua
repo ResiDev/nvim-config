@@ -4,11 +4,15 @@ return {
   "esmuellert/codediff.nvim",
   cmd = "CodeDiff",
     keys = {
-      { '<leader>gd', '<cmd>CodeDiff<cr>',         desc = 'CodeDiff vs HEAD' },
-      { '<leader>gh', '<cmd>CodeDiff history<cr>', desc = 'File history' },
+      { '<leader>gd', '<cmd>CodeDiff<cr>',                  desc = 'CodeDiff vs HEAD (inline)' },
+      { '<leader>gD', '<cmd>CodeDiff --side-by-side<cr>',   desc = 'CodeDiff vs HEAD (side-by-side)' },
+      { '<leader>gH', '<cmd>CodeDiff history<cr>',          desc = 'CodeDiff file history' },
 
     },
     opts ={
+      diff = {
+        layout = 'inline',
+      },
       keymaps = {
         view = {
           toggle_explorer= '<leader>e',
