@@ -4,6 +4,36 @@ return {
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs',
+    config = function(_, opts)
+      require('nvim-treesitter.configs').setup(opts)
+
+      local query = vim.treesitter.query
+
+      query.add_directive('set-lang-from-info-string!', function(match, _, bufnr, pred, metadata)
+        local capture_id = pred[2]
+        local node = match[capture_id]
+
+        if type(node) == 'table' then
+          node = node[1]
+        end
+
+        if not node or type(node.range) ~= 'function' then
+          return
+        end
+
+        local ok, text = pcall(vim.treesitter.get_node_text, node, bufnr)
+        if not ok or not text or text == '' then
+          return
+        end
+
+        local lang = text:match('^%s*([^%s{,]+)')
+        if not lang or lang == '' then
+          return
+        end
+
+        metadata['injection.language'] = vim.treesitter.language.get_lang(lang:lower()) or lang:lower()
+      end, { force = true })
+    end,
     opts = {
       ensure_installed = {
         'bash',
@@ -18,6 +48,9 @@ return {
         'vim',
         'vimdoc',
         'python',
+        'javascript',
+        'typescript',
+        'tsx',
         'zig',
         'rust',
       },
@@ -27,64 +60,51 @@ return {
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { enable = true, disable = { 'ruby' } },
+      textobjects = {
+        select = {
+          enable = true,
+          lookahead = true,
+          keymaps = {
+            ['af'] = '@function.outer',
+            ['if'] = '@function.inner',
+            ['ac'] = '@class.outer',
+            ['ic'] = '@class.inner',
+          },
+        },
+        move = {
+          enable = true,
+          set_jumps = true,
+          goto_next_start = {
+            [']]'] = '@function.outer',
+            [']c'] = '@class.outer',
+            [']l'] = '@loop.outer',
+            [']i'] = '@conditional.outer',
+          },
+          goto_next_end = {
+            [']['] = '@function.outer',
+            [']C'] = '@class.outer',
+            [']L'] = '@loop.outer',
+            [']I'] = '@conditional.outer',
+          },
+          goto_previous_start = {
+            ['[['] = '@function.outer',
+            ['[c'] = '@class.outer',
+            ['[l'] = '@loop.outer',
+            ['[i'] = '@conditional.outer',
+          },
+          goto_previous_end = {
+            ['[]'] = '@function.outer',
+            ['[C'] = '@class.outer',
+            ['[L'] = '@loop.outer',
+            ['[I'] = '@conditional.outer',
+          },
+        },
+      },
     },
   },
   {
     'nvim-treesitter/nvim-treesitter-textobjects',
     dependencies = { 'nvim-treesitter/nvim-treesitter' },
-    config = function()
-      require('nvim-treesitter.configs').setup {
-        -- Add these required core fields
-        ensure_installed = { "lua", "vim" }, -- Languages to ensure are installed
-        sync_install = false,                -- Install parsers synchronously
-        auto_install = true,                 -- Automatically install missing parsers
-        ignore_install = {},                 -- Parsers to ignore installing
-        modules = {},                        -- Add the required modules field
-
-        -- Your textobjects configuration
-        textobjects = {
-          select = {
-            enable = true,
-            lookahead = true, -- Automatically jump forward to matching textobj
-            keymaps = {
-              -- You use: va to select outer, vi to select inner
-              ['af'] = '@function.outer', -- Select outer part of a function
-              ['if'] = '@function.inner', -- Select inner part of a function
-              ['ac'] = '@class.outer',    -- Select outer part of a class
-              ['ic'] = '@class.inner',    -- Select inner part of a class
-            },
-          },
-          move = {
-            enable = true,
-            set_jumps = true,
-            goto_next_start = {
-              [']]'] = '@function.outer',    -- Function start
-              [']c'] = '@class.outer',       -- Class start
-              [']l'] = '@loop.outer',        -- Loop start
-              [']i'] = '@conditional.outer', -- If start
-            },
-            goto_next_end = {
-              [']['] = '@function.outer',    -- Function end
-              [']C'] = '@class.outer',       -- Class end
-              [']L'] = '@loop.outer',        -- Loop end
-              [']I'] = '@conditional.outer', -- If end
-            },
-            goto_previous_start = {
-              ['[['] = '@function.outer',    -- Previous function start
-              ['[c'] = '@class.outer',       -- Previous class start
-              ['[l'] = '@loop.outer',        -- Previous loop start
-              ['[i'] = '@conditional.outer', -- Previous if start
-            },
-            goto_previous_end = {
-              ['[]'] = '@function.outer',    -- Previous function end
-              ['[C'] = '@class.outer',       -- Previous class end
-              ['[L'] = '@loop.outer',        -- Previous loop end
-              ['[I'] = '@conditional.outer', -- Previous if end
-            },
-          },
-        },
-      }
-    end,
   },
   {
     'nvim-treesitter/nvim-treesitter-context',
