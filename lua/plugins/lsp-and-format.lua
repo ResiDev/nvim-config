@@ -149,6 +149,24 @@ return {
         -- Some languages (like typescript) have entire language plugins that can be useful:
         --    https://github.com/pmizio/typescript-tools.nvim
 
+        tsgo = {
+          cmd = { 'tsgo', '--lsp', '--stdio' },
+          filetypes = {
+            'javascript',
+            'javascriptreact',
+            'javascript.jsx',
+            'typescript',
+            'typescriptreact',
+            'typescript.tsx',
+          },
+          root_markers = {
+            'tsconfig.json',
+            'jsconfig.json',
+            'package.json',
+            '.git',
+          },
+        },
+
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -176,6 +194,27 @@ return {
       }
       vim.lsp.enable('mojo')
 
+      vim.lsp.config.oxlint = {
+        capabilities = capabilities,
+        cmd = { 'oxlint', '--lsp' },
+        filetypes = {
+          'javascript',
+          'javascriptreact',
+          'javascript.jsx',
+          'typescript',
+          'typescriptreact',
+          'typescript.tsx',
+        },
+        root_markers = {
+          '.oxlintrc.json',
+          '.oxlintrc.jsonc',
+          'oxlint.config.ts',
+          'package.json',
+          '.git',
+        },
+      }
+      vim.lsp.enable('oxlint')
+
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
@@ -186,6 +225,10 @@ return {
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
+            if server_name == 'ts_ls' then
+              return
+            end
+
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
