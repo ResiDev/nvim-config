@@ -34,7 +34,7 @@ return {
           },
         },
       },
-      explorer = {},
+      explorer = { replace_netrw = false },
     },
     keys = {
       {
