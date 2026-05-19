@@ -15,7 +15,7 @@ return {
       },
       keymaps = {
         view = {
-          toggle_explorer= '<leader>e',
+          toggle_explorer= '<leader>f',
           focus_explorer='<leader>b'
 
         }
