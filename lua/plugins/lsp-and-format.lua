@@ -29,6 +29,8 @@ return {
       -- 'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
+      vim.lsp.document_color.enable(false)
+
       -- LSP provides Neovim with features like:
       --  - Go to definition
       --  - Find references
@@ -103,6 +105,16 @@ return {
       -- local capabilities = vim.lsp.protocol.make_client_capabilities()
       -- capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
       local capabilities = require('blink.cmp').get_lsp_capabilities()
+      capabilities.offsetEncoding = { 'utf-16' }
+      capabilities.general = capabilities.general or {}
+      capabilities.general.positionEncodings = { 'utf-16' }
+
+      local js_filetypes = {
+        'javascript',
+        'javascriptreact',
+        'typescript',
+        'typescriptreact',
+      }
 
       -- Pin every server to UTF-16 so multiple clients on the same buffer agree
       -- on position encoding. Otherwise tsgo negotiates UTF-8 while oxlint /
@@ -151,20 +163,38 @@ return {
 
         tsgo = {
           cmd = { 'tsgo', '--lsp', '--stdio' },
-          filetypes = {
-            'javascript',
-            'javascriptreact',
-            'javascript.jsx',
-            'typescript',
-            'typescriptreact',
-            'typescript.tsx',
-          },
+          filetypes = js_filetypes,
           root_markers = {
             'tsconfig.json',
             'jsconfig.json',
             'package.json',
             '.git',
           },
+        },
+
+        tailwindcss = {
+          filetypes = {
+            'astro',
+            'html',
+            'css',
+            'less',
+            'sass',
+            'scss',
+            'javascript',
+            'javascriptreact',
+            'typescript',
+            'typescriptreact',
+            'vue',
+            'svelte',
+          },
+          settings = {
+            tailwindCSS = {
+              colorDecorators = 'off',
+            },
+          },
+          on_attach = function(client)
+            client.server_capabilities.colorProvider = nil
+          end,
         },
 
         lua_ls = {
@@ -197,14 +227,7 @@ return {
       vim.lsp.config.oxlint = {
         capabilities = capabilities,
         cmd = { 'oxlint', '--lsp' },
-        filetypes = {
-          'javascript',
-          'javascriptreact',
-          'javascript.jsx',
-          'typescript',
-          'typescriptreact',
-          'typescript.tsx',
-        },
+        filetypes = js_filetypes,
         root_markers = {
           '.oxlintrc.json',
           '.oxlintrc.jsonc',
@@ -215,7 +238,19 @@ return {
       }
       vim.lsp.enable('oxlint')
 
-      local ensure_installed = vim.tbl_keys(servers or {})
+      vim.lsp.config.tsgo = vim.tbl_deep_extend('force', vim.lsp.config.tsgo or {}, servers.tsgo, {
+        capabilities = capabilities,
+      })
+      vim.lsp.enable('tsgo')
+
+      vim.lsp.config.tailwindcss = vim.tbl_deep_extend('force', vim.lsp.config.tailwindcss or {}, servers.tailwindcss, {
+        capabilities = capabilities,
+      })
+      vim.lsp.enable('tailwindcss')
+
+      local ensure_installed = vim.tbl_filter(function(server)
+        return server ~= 'tailwindcss'
+      end, vim.tbl_keys(servers or {}))
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
         'prettierd', -- Used to format JS/TS/JSON/Astro via conform
@@ -225,7 +260,7 @@ return {
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
-            if server_name == 'ts_ls' then
+            if server_name == 'ts_ls' or server_name == 'tsgo' or server_name == 'tailwindcss' then
               return
             end
 
