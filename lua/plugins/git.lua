@@ -13,6 +13,9 @@ return {
       diff = {
         layout = 'inline',
       },
+      explorer = {
+        view_mode = 'tree',
+      },
       keymaps = {
         view = {
           toggle_explorer= '<leader>f',
