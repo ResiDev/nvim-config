@@ -104,6 +104,21 @@ return {
       -- capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 
+      -- Pin every server to UTF-16 so multiple clients on the same buffer agree
+      -- on position encoding. Otherwise tsgo negotiates UTF-8 while oxlint /
+      -- tailwindcss use UTF-16, which misaligns diagnostics/hover/edits on lines
+      -- containing multi-byte characters (see `:checkhealth vim.lsp`).
+      --
+      -- This must be a wildcard config: oxlint/tsgo/tailwindcss come from
+      -- nvim-lspconfig's bundled `lsp/*.lua` files (not the mason handler below),
+      -- so merging into `capabilities` alone would miss them. `vim.lsp.config('*')`
+      -- deep-merges into every server regardless of how it is registered.
+      vim.lsp.config('*', {
+        capabilities = {
+          general = { positionEncodings = { 'utf-16' } },
+        },
+      })
+
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
