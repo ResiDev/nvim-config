@@ -119,6 +119,19 @@ return {
         },
       })
 
+      -- nvim-lspconfig's bundled tailwindcss config force-enables
+      -- didChangeWatchedFiles.dynamicRegistration, which Neovim deliberately
+      -- ships disabled on Linux: registering watchers makes vim._watch walk the
+      -- ENTIRE workspace (node_modules, .pnpm-store, ...) synchronously on the
+      -- main thread — multi-second UI freezes on every attach in big repos.
+      -- Trade-off: tailwind won't auto-detect tailwind.config edits; run
+      -- `:LspRestart` after changing it.
+      vim.lsp.config('tailwindcss', {
+        capabilities = {
+          workspace = { didChangeWatchedFiles = { dynamicRegistration = false } },
+        },
+      })
+
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
