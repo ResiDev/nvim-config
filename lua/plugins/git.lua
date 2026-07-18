@@ -1,7 +1,8 @@
 -- ~/.config/nvim/lua/plugins/git.lua
 return {
   {
-  "esmuellert/codediff.nvim",
+  "ResiDev/codediff.nvim",
+  branch = "fix/dir-scan-ignores",
   cmd = "CodeDiff",
     keys = {
       { '<leader>gd', '<cmd>CodeDiff<cr>',                  desc = 'CodeDiff vs HEAD (inline)' },
@@ -15,6 +16,11 @@ return {
       },
       explorer = {
         view_mode = 'tree',
+        file_filter = {
+          -- Explicit (not relying on library defaults); note: this list
+          -- REPLACES the defaults, it is not merged with them
+          ignore = { '.git/**', '.jj/**', '**/node_modules/**', '**/.worktrees/**', '**/dist/**' },
+        },
       },
       keymaps = {
         view = {
