@@ -11,7 +11,7 @@ vim.keymap.set('n', '<C-j>', '<C-d>zz', { noremap = true })
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
-vim.keymap.set('n', '<Esc>', ':noh', { noremap = true })
+vim.keymap.set('n', '<Esc>', ':noh<CR>', { noremap = true })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })

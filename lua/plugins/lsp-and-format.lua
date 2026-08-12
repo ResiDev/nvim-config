@@ -170,6 +170,21 @@ return {
             'package.json',
             '.git',
           },
+          -- tsgo truncates hover text at 500 chars by default, which cuts off
+          -- any non-trivial inferred type. It's exposed only as a raw/"unstable"
+          -- preference (no stable settings path), read off initializationOptions
+          -- and from the `unstable` block of the config sections it pulls — so
+          -- set both, since a workspace/configuration refresh re-parses the latter.
+          init_options = {
+            maximumHoverLength = 10000,
+          },
+          settings = {
+            typescript = {
+              unstable = {
+                maximumHoverLength = 10000,
+              },
+            },
+          },
         },
 
         tailwindcss = {
