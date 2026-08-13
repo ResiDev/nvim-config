@@ -11,6 +11,7 @@ require 'core.options'
 require 'core.keymaps'
 require 'core.clipboard-context'
 require 'core.autocmds'
+require 'core.ask'
 require 'plugins'
 
 -- The line beneath this is called `modeline`. See `:help modeline`

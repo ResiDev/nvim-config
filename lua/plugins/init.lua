@@ -26,6 +26,7 @@ require('lazy').setup({
     { import = 'plugins.snacks' },
     { import = 'plugins.dadbod' },
     { import = 'plugins.experiment' },
+    { import = 'plugins.tour' },
   },
   -- Opts
   {

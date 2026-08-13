@@ -15,6 +15,10 @@ vim.opt.showmode = false
 --  See `:help 'clipboard'`
 vim.opt.clipboard = 'unnamedplus'
 
+-- Wrap long lines visually instead of scrolling horizontally.
+vim.opt.wrap = true
+vim.opt.linebreak = true
+
 -- Enable break indent
 vim.opt.breakindent = true
 
