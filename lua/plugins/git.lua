@@ -1,11 +1,9 @@
 -- ~/.config/nvim/lua/plugins/git.lua
 return {
   {
-  "ResiDev/codediff.nvim",
-  -- Local fork: carries the fix for tsgo crashing on codediff:// URIs.
-  -- Branch fix/lsp-virtual-uri-panic, based on fix/dir-scan-ignores.
-  dir = vim.fn.expand("~/Work/libs/codediff.nvim"),
-  cmd = "CodeDiff",
+    "ResiDev/codediff.nvim",
+    branch = "fix/lsp-virtual-uri-panic",
+    cmd = "CodeDiff",
     keys = {
       { '<leader>gd', '<cmd>CodeDiff<cr>',                  desc = 'CodeDiff vs HEAD (inline)' },
       { '<leader>gD', '<cmd>CodeDiff --side-by-side<cr>',   desc = 'CodeDiff vs HEAD (side-by-side)' },
