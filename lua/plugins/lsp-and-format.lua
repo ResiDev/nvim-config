@@ -29,7 +29,9 @@ return {
       -- 'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
-      vim.lsp.document_color.enable(false)
+      if vim.lsp.document_color then
+        vim.lsp.document_color.enable(false)
+      end
 
       -- LSP provides Neovim with features like:
       --  - Go to definition
@@ -117,11 +119,11 @@ return {
       }
 
       -- Pin every server to UTF-16 so multiple clients on the same buffer agree
-      -- on position encoding. Otherwise tsgo negotiates UTF-8 while oxlint /
+      -- on position encoding. Otherwise tsc negotiates UTF-8 while oxlint /
       -- tailwindcss use UTF-16, which misaligns diagnostics/hover/edits on lines
       -- containing multi-byte characters (see `:checkhealth vim.lsp`).
       --
-      -- This must be a wildcard config: oxlint/tsgo/tailwindcss come from
+      -- This must be a wildcard config: oxlint/tsc/tailwindcss come from
       -- nvim-lspconfig's bundled `lsp/*.lua` files (not the mason handler below),
       -- so merging into `capabilities` alone would miss them. `vim.lsp.config('*')`
       -- deep-merges into every server regardless of how it is registered.
@@ -161,8 +163,7 @@ return {
         -- Some languages (like typescript) have entire language plugins that can be useful:
         --    https://github.com/pmizio/typescript-tools.nvim
 
-        tsgo = {
-          cmd = { 'tsgo', '--lsp', '--stdio' },
+        tsc = {
           filetypes = js_filetypes,
           root_markers = {
             'tsconfig.json',
@@ -170,7 +171,7 @@ return {
             'package.json',
             '.git',
           },
-          -- tsgo truncates hover text at 500 chars by default, which cuts off
+          -- The native TypeScript LSP truncates hover text at 500 chars by default, which cuts off
           -- any non-trivial inferred type. It's exposed only as a raw/"unstable"
           -- preference (no stable settings path), read off initializationOptions
           -- and from the `unstable` block of the config sections it pulls — so
@@ -253,10 +254,10 @@ return {
       }
       vim.lsp.enable('oxlint')
 
-      vim.lsp.config.tsgo = vim.tbl_deep_extend('force', vim.lsp.config.tsgo or {}, servers.tsgo, {
+      vim.lsp.config.tsc = vim.tbl_deep_extend('force', vim.lsp.config.tsc or {}, servers.tsc, {
         capabilities = capabilities,
       })
-      vim.lsp.enable('tsgo')
+      vim.lsp.enable('tsc')
 
       vim.lsp.config.tailwindcss = vim.tbl_deep_extend('force', vim.lsp.config.tailwindcss or {}, servers.tailwindcss, {
         capabilities = capabilities,
@@ -264,7 +265,9 @@ return {
       vim.lsp.enable('tailwindcss')
 
       local ensure_installed = vim.tbl_filter(function(server)
-        return server ~= 'tailwindcss'
+        -- nvim-lspconfig's `tsc` config uses the existing native TypeScript
+        -- executable (`tsc`, falling back to `tsgo`); it is not a Mason server id.
+        return server ~= 'tailwindcss' and server ~= 'tsc'
       end, vim.tbl_keys(servers or {}))
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
@@ -275,7 +278,7 @@ return {
       require('mason-lspconfig').setup {
         handlers = {
           function(server_name)
-            if server_name == 'ts_ls' or server_name == 'tsgo' or server_name == 'tailwindcss' then
+            if server_name == 'ts_ls' or server_name == 'tsgo' or server_name == 'tsc' or server_name == 'tailwindcss' then
               return
             end
 
