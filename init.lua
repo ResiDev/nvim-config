@@ -12,6 +12,7 @@ require 'core.keymaps'
 require 'core.clipboard-context'
 require 'core.autocmds'
 require 'core.ask'
+require 'core.lsp-debug'
 require 'plugins'
 
 -- The line beneath this is called `modeline`. See `:help modeline`
