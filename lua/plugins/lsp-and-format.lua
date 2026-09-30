@@ -66,8 +66,21 @@ return {
           map('<leader>o', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
-          -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
+          if client and client.name == 'tsc' then
+            map('K', function()
+              if vim.v.count == 0 then
+                vim.lsp.buf.hover()
+                return
+              end
+
+              local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
+              params.verbosityLevel = vim.v.count
+              client:request('textDocument/hover', params, vim.lsp.handlers.hover, event.buf)
+            end, 'Expanded TypeScript Hover')
+          end
+
+          -- When you move your cursor, the highlights will be cleared (the second autocommand).
           if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -110,6 +123,8 @@ return {
       capabilities.offsetEncoding = { 'utf-16' }
       capabilities.general = capabilities.general or {}
       capabilities.general.positionEncodings = { 'utf-16' }
+      capabilities.experimental = capabilities.experimental or {}
+      capabilities.experimental.hoverVerbosityLevel = true
 
       local js_filetypes = {
         'javascript',
