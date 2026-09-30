@@ -254,6 +254,32 @@ return {
       }
       vim.lsp.enable('oxlint')
 
+      -- Effect's language service can't load as a tsserver plugin under native
+      -- TypeScript (7+): the `plugins` entry in tsconfig is silently ignored.
+      -- Effect ships its own tsgo build (@effect/tsgo) instead, normally wired
+      -- in by `effect-tsgo patch` overwriting node_modules/typescript — which
+      -- any reinstall undoes. When the project has @effect/tsgo, run its binary
+      -- directly instead so it works whether or not the patch is applied.
+      local default_tsc_cmd = vim.lsp.config.tsc.cmd
+      servers.tsc.cmd = function(dispatchers, config)
+        local root = (config or {}).root_dir
+        local effect_tsgo = root and vim.fs.joinpath(root, 'node_modules/.bin/effect-tsgo')
+        if effect_tsgo and vim.fn.executable(effect_tsgo) == 1 then
+          local result = vim.system({ effect_tsgo, 'get-exe-path' }, { cwd = root }):wait()
+          local exe = vim.trim(result.stdout or '')
+          -- pnpm installs the platform binary without the exec bit (`patch`
+          -- normally chmods it when copying it over typescript's).
+          if result.code == 0 and exe ~= '' and vim.fn.executable(exe) == 0 and vim.uv.fs_stat(exe) then
+            vim.uv.fs_chmod(exe, tonumber('755', 8))
+          end
+          if result.code == 0 and vim.fn.executable(exe) == 1 then
+            return vim.lsp.rpc.start({ exe, '--lsp', '--stdio' }, dispatchers, { cwd = root })
+          end
+          vim.notify('effect-tsgo get-exe-path failed, falling back to tsc: ' .. (result.stderr or ''), vim.log.levels.WARN)
+        end
+        return default_tsc_cmd(dispatchers, config)
+      end
+
       vim.lsp.config.tsc = vim.tbl_deep_extend('force', vim.lsp.config.tsc or {}, servers.tsc, {
         capabilities = capabilities,
       })
