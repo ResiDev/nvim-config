@@ -12,6 +12,10 @@ vim.opt.mouse = 'a'
 -- Don't show the mode, since it's already in the status line
 vim.opt.showmode = false
 
+-- Tag the terminal title with this server's pid so ~/.local/bin/nvim-open can find and focus the window.
+vim.opt.title = true
+vim.opt.titlestring = '%t%( %M%) [nvim:' .. vim.fn.getpid() .. ']'
+
 --  See `:help 'clipboard'`
 vim.opt.clipboard = 'unnamedplus'
 
