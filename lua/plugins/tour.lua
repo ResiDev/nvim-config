@@ -1,6 +1,9 @@
 return {
   {
-    'ResiDev/nvim-tour',
+    -- The local checkout, on the `diagrams` branch; back to 'ResiDev/nvim-tour'
+    -- once that is pushed.
+    dir = vim.fn.stdpath 'config' .. '/tour.nvim',
+    name = 'nvim-tour',
     cmd = {
       'Tour',
       'TourNext',
@@ -12,6 +15,7 @@ return {
       'TourList',
       'TourStop',
       'TourCheck',
+      'TourPreview',
       'TourFollow',
       'TourQuickfix',
       'TourOpen',
