@@ -15,6 +15,10 @@ return {
       'TourFollow',
       'TourQuickfix',
       'TourOpen',
+      'TourMap',
+      'TourPreview',
+      'TourDiff',
+      'TourChanges',
     },
     -- setup() is optional; drop `opts` entirely to take the defaults.
     opts = {

@@ -34,6 +34,7 @@ local ensure_installed = {
   'tsx',
   'zig',
   'rust',
+  'sql',
 }
 
 -- Replaces `highlight.additional_vim_regex_highlighting`: `vim.treesitter.start()`
