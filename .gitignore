@@ -10,3 +10,4 @@ local/
 tour.nvim/
 .tour*
 comments.nvim/
+thread.nvim/
