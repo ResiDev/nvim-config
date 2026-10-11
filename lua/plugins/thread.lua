@@ -8,12 +8,6 @@ return {
     -- After comments.nvim, so Enter, + and - on a thread are ours and fall
     -- back to its on a comment.
     dependencies = { 'comments.nvim' },
-    opts = {
-      walk = {
-        -- As with tour.nvim: K and J stay hover and join while walking.
-        up = '<leader>hk',
-        into = '<leader>hj',
-      },
-    },
+    opts = {},
   },
 }
