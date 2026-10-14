@@ -1,9 +1,14 @@
+-- The prototype that combines comments and tours, on its new surfaces.
+-- From the rebuild's worktree when this machine has it, so edits show
+-- without pushing; else cloned from GitHub.
+local here = vim.fn.stdpath 'config' .. '/thread.nvim/.worktrees/rebuild'
+
 return {
   {
-    -- The prototype that combines comments and tours, from the rebuild's
-    -- worktree (the checkout is .../thread.nvim), on its new surfaces.
-    dir = vim.fn.stdpath 'config' .. '/thread.nvim/.worktrees/rebuild',
+    'ResiDev/threads',
     name = 'thread.nvim',
+    branch = 'rebuild',
+    dir = vim.uv.fs_stat(here) and here or nil,
     event = 'VeryLazy',
     cmd = 'Thread',
     opts = { rebuild = true },
