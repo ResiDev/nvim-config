@@ -67,18 +67,6 @@ return {
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client.name == 'tsc' then
-            map('K', function()
-              if vim.v.count == 0 then
-                vim.lsp.buf.hover()
-                return
-              end
-
-              local params = vim.lsp.util.make_position_params(0, client.offset_encoding)
-              params.verbosityLevel = vim.v.count
-              client:request('textDocument/hover', params, vim.lsp.handlers.hover, event.buf)
-            end, 'Expanded TypeScript Hover')
-          end
 
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
@@ -373,6 +361,37 @@ return {
     'dmmulroy/ts-error-translator.nvim',
     config = function()
       require('ts-error-translator').setup()
+    end,
+  },
+  {
+    -- K opens a TypeScript hover whose types expand in place, VS Code style.
+    -- Needs the tsc capability `experimental.hoverVerbosityLevel`, set above.
+    'nemanjamalesija/ts-expand-hover.nvim',
+    ft = { 'javascript', 'javascriptreact', 'typescript', 'typescriptreact' },
+    opts = {
+      keymaps = { expand = 'K', collapse = 'J' },
+    },
+    config = function(_, opts)
+      require('ts_expand_hover').setup(opts)
+
+      -- TypeScript says a type can't expand when what's left to open is an
+      -- alias of `Readonly<{…}>`, though the next level does expand it, so K
+      -- would stop at depth 0 on most of our types. Ignore that answer: K
+      -- always asks for the next level, and that level counts as the max
+      -- only when it reads the same as the one before.
+      local float = require 'ts_expand_hover.float'
+      local show = float.show
+      local shown
+      float.show = function(hover, state, ...)
+        if state.verbosity > 0 and vim.deep_equal(hover.lines, shown) then
+          state.verbosity = state.verbosity - 1
+          hover.can_expand = false
+        else
+          hover.can_expand = true
+        end
+        shown = hover.lines
+        return show(hover, state, ...)
+      end
     end,
   },
 }
