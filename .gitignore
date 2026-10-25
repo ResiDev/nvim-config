@@ -7,7 +7,5 @@ nvim
 spell/
 lazy-lock.json
 local/
-tour.nvim/
 .tour*
-comments.nvim/
-thread.nvim/
+/*.nvim/
