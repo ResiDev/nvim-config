@@ -7,7 +7,7 @@ return {
   {
     'ResiDev/threads',
     name = 'thread.nvim',
-    branch = 'rebuild',
+    branch = 'master',
     dir = vim.uv.fs_stat(here) and here or nil,
     event = 'VeryLazy',
     cmd = 'Thread',
