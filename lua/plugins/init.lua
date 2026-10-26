@@ -28,6 +28,7 @@ require('lazy').setup({
     { import = 'plugins.experiment' },
     { import = 'plugins.tour' },
     { import = 'plugins.thread' },
+    { import = 'plugins.seam' },
   },
   -- Opts
   {
